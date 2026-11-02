@@ -51,6 +51,17 @@ SERVICE_SCHEMA = vol.Schema(
         vol.Optional("announce"): cv.boolean,
         vol.Optional("camera_entity"): cv.entity_id,
         vol.Optional("link"): cv.string,
+        vol.Optional("actions"): [
+            vol.Schema(
+                {
+                    vol.Required("action"): cv.string,
+                    vol.Required("title"): cv.string,
+                    vol.Optional("destructive"): cv.boolean,
+                    vol.Optional("authenticationRequired"): cv.boolean,
+                    vol.Optional("uri"): cv.string,
+                }
+            )
+        ],
         vol.Optional("dedupe_key"): cv.string,
         vol.Optional("cooldown"): vol.All(vol.Coerce(int), vol.Range(min=0, max=86400)),
     }

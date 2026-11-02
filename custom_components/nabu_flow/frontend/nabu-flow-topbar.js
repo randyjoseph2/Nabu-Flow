@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.3.3.
+   Version 0.3.4.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -16,6 +16,7 @@
 */
 (function () {
   'use strict';
+  if (window.customElements.get('nabu-top-bar')) { return; }
 
   var CSS = [
     ':host{display:block;--nb-accent:#F7CB6B;--nb-ink:#14151A}',

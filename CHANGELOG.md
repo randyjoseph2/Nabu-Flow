@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4
+- Phone pushes can carry action buttons: pass `actions` (list of `action`, `title`, optional `destructive`) to `nabu_flow.notify`.
+- Top bar no longer errors if it is loaded twice.
+
 ## 0.3.3
 
 - Cards and top bar also load in older display WebViews (es5 list), so kiosk displays no longer show a red missing-card error

@@ -73,6 +73,7 @@ class NabuManager:
     async def async_notify(self, data: dict[str, Any], source: str = "service") -> dict[str, Any]:
         config = self.store.config
         plan = build_plan(config, data, away=self._away(), quiet=self._quiet())
+        plan["actions"] = [dict(a) for a in (data.get("actions") or [])]
         errors: list[str] = []
         entry: dict[str, Any] = {
             "ts": dt_util.utcnow().isoformat(),
@@ -148,6 +149,9 @@ class NabuManager:
                     "push": {"thread-id": push["group"], "interruption-level": push["level"]},
                 },
             }
+            if plan.get("actions"):
+                data["data"]["actions"] = plan["actions"]
+                data["data"]["tag"] = push["group"] + "-" + str(int(time.time()))
             image_url = self._snapshot_url(snap_path)
             if image_url:
                 data["data"]["image"] = image_url
