@@ -150,6 +150,17 @@ Critical alerts ignore presence. Everyone always gets them. A person whose prese
 
 The audit reads `automations.yaml` (where the UI saves automations). Blueprint-based automations and automations defined in YAML packages are not scanned yet.
 
+## Dashboard card
+
+A card loads automatically with the integration (no resource to add). It shows the latest notifications, a quiet-mode switch and an optional test button, and works for non-admin users too.
+
+```yaml
+type: custom:nabu-flow-card
+title: Nabu
+limit: 6
+test_button: true   # admins only, optional
+```
+
 ## Events
 
 Every notification fires a `nabu_flow_sent` event with the same details shown in History, so you can build automations on top of it.

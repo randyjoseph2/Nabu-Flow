@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0
+
+- Dashboard card `custom:nabu-flow-card`: recent notifications, quiet-mode switch, optional test button (loads automatically, works for non-admin users)
+- Read-only `nabu_flow/recent` websocket command
+
 ## 0.1.0
 
 First release.

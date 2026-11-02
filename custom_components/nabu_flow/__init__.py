@@ -25,6 +25,7 @@ from .const import (
     PRESENCE_MODES,
     SERVICE_NOTIFY,
     SEVERITIES,
+    CARD_FILE,
     STATIC_URL,
     VERSION,
 )
@@ -75,6 +76,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     ws.async_register(hass)
     await _async_register_static(hass)
+    if not hass.data.get("nabu_flow_card_registered"):
+        frontend.add_extra_js_url(hass, f"{STATIC_URL}/{CARD_FILE}?v={VERSION}")
+        hass.data["nabu_flow_card_registered"] = True
 
     try:
         await panel_custom.async_register_panel(

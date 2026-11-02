@@ -57,6 +57,30 @@ def ws_history(hass: HomeAssistant, connection: websocket_api.ActiveConnection, 
     connection.send_result(msg["id"], {"items": _manager(hass).store.history})
 
 
+@websocket_api.websocket_command(
+    {vol.Required("type"): "nabu_flow/recent", vol.Optional("limit", default=8): vol.All(int, vol.Range(min=1, max=30))}
+)
+@callback
+def ws_recent(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Read-only feed for the dashboard card. Open to every user, no config exposed."""
+    manager = _manager(hass)
+    items = []
+    for item in manager.store.history[: msg["limit"]]:
+        ok = not item.get("errors") and item.get("suppressed") is None
+        items.append(
+            {
+                "ts": item.get("ts"),
+                "title": item.get("title"),
+                "severity": item.get("severity"),
+                "channel": item.get("channel"),
+                "route": item.get("route"),
+                "suppressed": item.get("suppressed"),
+                "ok": ok,
+            }
+        )
+    connection.send_result(msg["id"], {"items": items, "quiet_entity": manager.store.config["settings"].get("quiet_entity")})
+
+
 @websocket_api.require_admin
 @websocket_api.websocket_command({vol.Required("type"): "nabu_flow/clear_history"})
 @websocket_api.async_response
@@ -108,6 +132,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_update,
         ws_audit,
         ws_history,
+        ws_recent,
         ws_clear_history,
         ws_test,
         ws_export,
