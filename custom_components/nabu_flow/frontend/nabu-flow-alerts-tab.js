@@ -52,7 +52,7 @@
 
   function vRules(p) {
     var d = p._data, rules = d.alerts.rules, ids = Object.keys(rules);
-    var h = '<div class="card"><div class="name">Live strip</div><div class="muted small" style="margin-bottom:8px">This is the same strip your dashboards show.</div><div id="livestrip"></div></div>';
+    var h = '<div class="muted small" style="margin-bottom:8px">The live strip is at the top of this panel and on your dashboards.</div>';
     h += '<div class="bar"><button class="btn pri" data-act="alert-new">New alert</button></div>';
     if (p._aedit !== null && p._aedit !== undefined) { h += vForm(p); }
     if (!ids.length) {

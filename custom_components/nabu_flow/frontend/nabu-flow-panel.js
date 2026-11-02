@@ -46,6 +46,7 @@ import './nabu-flow-alerts-tab.js?v=0.4.0';
     set hass(h) {
       var first = !this._hass;
       this._hass = h;
+      if (this._strip) { this._strip.hass = h; }
       if (first) { this._load(); }
     }
     set narrow(v) {
@@ -137,10 +138,23 @@ import './nabu-flow-alerts-tab.js?v=0.4.0';
       }).join('');
       this._root.innerHTML = '<style>' + CSS + '</style><div class="wrap"><div class="top"><ha-menu-button></ha-menu-button>' + FACE +
         '<div><div class="ttl">Nabu Flow</div><div class="muted small">Notifications and alerts for Home Assistant</div></div></div>' +
-        '<div class="tabs">' + tabs + '</div>' + body + '</div>';
+        '<div id="topstrip" style="margin:8px 0"></div><div class="tabs">' + tabs + '</div>' + body + '</div>';
       var m = this._root.querySelector('ha-menu-button');
       if (m) { m.hass = this._hass; m.narrow = this._narrow; }
-      if (this._tab === 'alerts' && this._data) { window.NabuFlowAlertsTab.after(this); }
+      this._mountStrip();
+    }
+
+    // One live alerts strip lives under the header on every tab. It is created once and
+    // moved into each new render so it keeps its subscription and position in the cycle.
+    _mountStrip() {
+      var slot = this._root.querySelector('#topstrip');
+      if (!slot || !window.customElements.get('nabu-alert-strip')) { return; }
+      if (!this._strip) {
+        this._strip = document.createElement('nabu-alert-strip');
+        this._strip.setConfig({});
+      }
+      this._strip.hass = this._hass;
+      slot.appendChild(this._strip);
     }
 
     _vRoutes() {
