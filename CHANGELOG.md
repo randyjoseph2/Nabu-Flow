@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.6
+- New `tap_url` option: tapping the phone push opens that dashboard path (for example /newui-4-0/cameras).
+
 ## 0.3.5
 - Phone pushes show the camera picture through the app's camera proxy (`entity_id`) instead of a /local file that returned 404.
 

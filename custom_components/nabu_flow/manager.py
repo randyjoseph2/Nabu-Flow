@@ -74,6 +74,7 @@ class NabuManager:
         config = self.store.config
         plan = build_plan(config, data, away=self._away(), quiet=self._quiet())
         plan["actions"] = [dict(a) for a in (data.get("actions") or [])]
+        plan["tap_url"] = str(data.get("tap_url") or "").strip()
         errors: list[str] = []
         entry: dict[str, Any] = {
             "ts": dt_util.utcnow().isoformat(),
@@ -149,6 +150,9 @@ class NabuManager:
                     "push": {"thread-id": push["group"], "interruption-level": push["level"]},
                 },
             }
+            if plan.get("tap_url"):
+                data["data"]["url"] = plan["tap_url"]
+                data["data"]["clickAction"] = plan["tap_url"]
             if plan.get("actions"):
                 data["data"]["actions"] = plan["actions"]
                 data["data"]["tag"] = push["group"] + "-" + str(int(time.time()))

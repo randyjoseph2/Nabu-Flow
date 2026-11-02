@@ -51,6 +51,7 @@ SERVICE_SCHEMA = vol.Schema(
         vol.Optional("announce"): cv.boolean,
         vol.Optional("camera_entity"): cv.entity_id,
         vol.Optional("link"): cv.string,
+        vol.Optional("tap_url"): cv.string,
         vol.Optional("actions"): [
             vol.Schema(
                 {
