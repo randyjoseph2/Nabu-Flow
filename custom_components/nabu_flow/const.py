@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 DOMAIN = "nabu_flow"
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 
 STORAGE_KEY = "nabu_flow.config"
 HISTORY_KEY = "nabu_flow.history"
@@ -13,6 +13,7 @@ PANEL_URL_PATH = "nabu-flow"
 PANEL_ELEMENT = "nabu-flow-panel"
 PANEL_FILE = "nabu-flow-panel.js"
 CARD_FILE = "nabu-flow-card.js"
+TOPBAR_FILE = "nabu-flow-topbar.js"
 STATIC_URL = "/nabu_flow_static"
 DATA_STATIC_REGISTERED = f"{DOMAIN}_static_registered"
 DATA_WS_REGISTERED = f"{DOMAIN}_ws_registered"

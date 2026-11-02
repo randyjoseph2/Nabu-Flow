@@ -161,6 +161,21 @@ limit: 6
 test_button: true   # admins only, optional
 ```
 
+### Top bar card
+
+A header for any dashboard: menu button, logo, title, an Assist (talk to Nabu) button and pill tabs that switch pages.
+
+```yaml
+type: custom:nabu-top-bar
+title: NewUI 4.0
+subtitle: Home Assistant
+pages:
+  - label: Home
+    path: /newui-4-0/home-2-0
+  - label: Cameras
+    path: /newui-4-0/cameras
+```
+
 ## Events
 
 Every notification fires a `nabu_flow_sent` event with the same details shown in History, so you can build automations on top of it.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- New `custom:nabu-top-bar` card: logo, title, Assist button and pill tabs that act as dashboard pages
+
 ## 0.2.1
 
 - Camera snapshots are now attached to phone pushes as well as Discord (iOS attachment and Android image), when the snapshot path is under www

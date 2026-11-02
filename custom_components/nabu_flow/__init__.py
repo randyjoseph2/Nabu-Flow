@@ -27,6 +27,7 @@ from .const import (
     SEVERITIES,
     CARD_FILE,
     STATIC_URL,
+    TOPBAR_FILE,
     VERSION,
 )
 from .manager import NabuManager
@@ -78,6 +79,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await _async_register_static(hass)
     if not hass.data.get("nabu_flow_card_registered"):
         frontend.add_extra_js_url(hass, f"{STATIC_URL}/{CARD_FILE}?v={VERSION}")
+        frontend.add_extra_js_url(hass, f"{STATIC_URL}/{TOPBAR_FILE}?v={VERSION}")
         hass.data["nabu_flow_card_registered"] = True
 
     try:
