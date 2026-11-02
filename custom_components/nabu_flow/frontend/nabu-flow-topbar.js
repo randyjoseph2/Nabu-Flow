@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.4.2. The logo is the Assist button.
+   Version 0.4.3. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -214,6 +214,23 @@
       this._placeStrip();
     }
 
+    // Some displays skip the alerts file. Load it ourselves once and keep any error to show.
+    _fallbackLoad() {
+      if (this._tried) { return; }
+      this._tried = true;
+      var self = this;
+      var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
+      window.addEventListener('error', onErr);
+      var s = document.createElement('script');
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=0.4.3&fb=1';
+      s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
+      s.onload = function () {
+        window.removeEventListener('error', onErr);
+        if (!window.customElements.get('nabu-alert-strip')) { self._loadErr = self._loadErr || 'ran but did not register'; }
+      };
+      document.head.appendChild(s);
+    }
+
     // If the alerts strip can not show, say why on screen instead of failing silently.
     _diag() {
       var self = this;
@@ -223,7 +240,7 @@
       var old = slot.querySelector('.dbg');
       if (old) { old.parentNode.removeChild(old); }
       var why = '';
-      if (!window.customElements.get('nabu-alert-strip')) { why = 'alerts file did not load'; }
+      if (!window.customElements.get('nabu-alert-strip')) { why = 'alerts file did not load' + (this._loadErr ? ' (' + this._loadErr + ')' : ''); this._fallbackLoad(); }
       else if (!this._strip) { why = 'strip not created'; }
       else if (this._strip.hidden) { why = this._strip._dbg || 'no data yet'; }
       if (why) {
