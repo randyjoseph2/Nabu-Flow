@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.4.4. The logo is the Assist button.
+   Version 0.4.5. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -37,7 +37,7 @@
     '.sub{margin-top:3px;font-size:14px;color:var(--secondary-text-color,#9aa0ad);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.alerts{padding:0 4px}',
     '.alerts:empty{display:none}',
-    '.bub{flex:1 1 0;min-width:0;position:relative}',
+    '.bub{flex:1 1 0;min-width:0;position:relative;margin:0 8px 0 28px}',
     '.bub:empty{display:none}',
     '.dbg{font-size:11px;color:#ff9a9d;text-align:right;line-height:1.2}',
     '.bub nabu-alert-strip{margin-top:0}',
@@ -222,7 +222,7 @@
       var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
       window.addEventListener('error', onErr);
       var s = document.createElement('script');
-      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=0.4.4&fb=1';
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=0.4.5&fb=1';
       s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
       s.onload = function () {
         window.removeEventListener('error', onErr);
