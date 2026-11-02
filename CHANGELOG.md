@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- Top bar: `menu: false` hides the sidebar button (for kiosk displays)
+
 ## 0.3.1
 
 - Top bar pills snap into place and the current page is centered on load

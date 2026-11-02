@@ -1,12 +1,13 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.3.1.
+   Version 0.3.2.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
      subtitle: Home Assistant        (optional)
      assist: true                    (optional, default true)
+     menu: true                      (optional, default true; false hides the sidebar button)
      pages:
        - label: Home
          path: /newui-4-0/home-2-0
@@ -135,7 +136,9 @@
     _render() {
       var cfg = this._cfg;
       var h = '<style>' + CSS + '</style><div class="wrap"><div class="top">';
-      h += '<button class="ib" data-act="menu" aria-label="Menu"><ha-icon icon="mdi:menu"></ha-icon></button>';
+      if (cfg.menu !== false) {
+        h += '<button class="ib" data-act="menu" aria-label="Menu"><ha-icon icon="mdi:menu"></ha-icon></button>';
+      }
       h += LOGO;
       h += '<div class="txt"><div class="ttl">' + esc(cfg.title || 'Nabu') + '</div>';
       if (cfg.subtitle) { h += '<div class="sub">' + esc(cfg.subtitle) + '</div>'; }
