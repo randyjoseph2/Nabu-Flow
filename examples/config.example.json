@@ -1,0 +1,73 @@
+{
+  "nabu_flow": 1,
+  "settings": {
+    "notify_service": "notify.nabu",
+    "quiet_entity": "input_boolean.nabu_quiet_mode",
+    "default_channel": "server_and_ha",
+    "digest_channel": "digest",
+    "critical_log_channel": "critical_log",
+    "announce_service": "",
+    "snapshot_path": "",
+    "history_size": 100
+  },
+  "people": {
+    "alex": {
+      "name": "Alex",
+      "person_entity": "person.alex",
+      "phone_service": "notify.mobile_app_alexs_iphone",
+      "discord_id": ""
+    },
+    "sam": {
+      "name": "Sam",
+      "person_entity": "person.sam",
+      "phone_service": "notify.mobile_app_sams_iphone",
+      "discord_id": ""
+    }
+  },
+  "channels": {
+    "doors": { "name": "Doors and locks", "discord_id": "" },
+    "garage": { "name": "Garage", "discord_id": "" },
+    "appliances": { "name": "Appliances", "discord_id": "" },
+    "server_and_ha": { "name": "Server and HA", "discord_id": "" },
+    "digest": { "name": "Digest", "discord_id": "" },
+    "critical_log": { "name": "Critical log", "discord_id": "" }
+  },
+  "routes": {
+    "front_door_open": {
+      "name": "Front door open",
+      "channel": "doors",
+      "who": ["all"],
+      "severity": "heads_up",
+      "discord": true,
+      "phone": "normal",
+      "presence": "aware",
+      "announce": false,
+      "cooldown": 900,
+      "enabled": true
+    },
+    "dryer_done": {
+      "name": "Dryer done",
+      "channel": "appliances",
+      "who": ["all"],
+      "severity": "info",
+      "discord": true,
+      "phone": "none",
+      "presence": "aware",
+      "announce": false,
+      "cooldown": 0,
+      "enabled": true
+    },
+    "garage_left_open": {
+      "name": "Garage left open",
+      "channel": "garage",
+      "who": ["all"],
+      "severity": "critical",
+      "discord": true,
+      "phone": "auto",
+      "presence": "aware",
+      "announce": true,
+      "cooldown": 600,
+      "enabled": true
+    }
+  }
+}

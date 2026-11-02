@@ -1,0 +1,81 @@
+# Examples. Paste into the YAML editor of an automation.
+# Create the routes first in the Nabu Flow panel (Routes tab), or use the
+# inline form, which needs no route.
+
+# 1. Door left open: call a route, attach a snapshot
+- alias: Front door left open
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.front_door
+      to: "on"
+      for: "00:10:00"
+  actions:
+    - action: nabu_flow.notify
+      data:
+        route: front_door_open
+        title: Front door left open
+        message: Open for 10 minutes
+        camera_entity: camera.front_door
+
+# 2. Dryer finished: quiet FYI, Discord only
+- alias: Dryer done
+  triggers:
+    - trigger: state
+      entity_id: sensor.dryer_state
+      to: "finished"
+  actions:
+    - action: nabu_flow.notify
+      data:
+        route: dryer_done
+        title: Dryer done
+        message: Clothes are ready
+
+# 3. Garage open at night: loud to everyone and spoken in the kitchen
+- alias: Garage open late
+  triggers:
+    - trigger: state
+      entity_id: cover.garage_door
+      to: "open"
+      for: "00:20:00"
+  conditions:
+    - condition: time
+      after: "22:00:00"
+      before: "05:00:00"
+  actions:
+    - action: nabu_flow.notify
+      data:
+        route: garage_left_open
+        title: Garage open
+        message: "The garage has been open for 20 minutes."
+
+# 4. Inline, no route: phone only, one person
+- alias: Pick up reminder
+  triggers:
+    - trigger: time
+      at: "16:30:00"
+  actions:
+    - action: nabu_flow.notify
+      data:
+        who: sam
+        discord: false
+        phone: normal
+        severity: heads_up
+        title: Pick up the kids
+        message: Practice ends at 5
+
+# 5. Package delivered: only ping whoever is home
+- alias: Package delivered
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.front_door_package
+      to: "on"
+  actions:
+    - action: nabu_flow.notify
+      data:
+        channel: doors
+        title: Package delivered
+        message: Front porch
+        severity: heads_up
+        phone: normal
+        presence: home_only
+        camera_entity: camera.front_door

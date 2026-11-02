@@ -1,0 +1,102 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Nabu Flow",
+        "description": "Set up Nabu Flow, the notification routing panel. After setup, open Nabu Flow from the sidebar to add your people, Discord channels and routes."
+      }
+    },
+    "abort": {
+      "already_configured": "Nabu Flow is already set up."
+    }
+  },
+  "selector": {
+    "severity": {
+      "options": {
+        "info": "Info",
+        "heads_up": "Heads-up",
+        "critical": "Critical"
+      }
+    },
+    "phone": {
+      "options": {
+        "auto": "Auto (critical severity only)",
+        "none": "None",
+        "normal": "Normal",
+        "urgent": "Urgent (time sensitive)",
+        "critical": "Critical (loud)"
+      }
+    },
+    "presence": {
+      "options": {
+        "aware": "Aware",
+        "ignore": "Ignore",
+        "home_only": "Home only"
+      }
+    }
+  },
+  "services": {
+    "notify": {
+      "name": "Notify",
+      "description": "Send a notification through Nabu Flow's routing: Discord, phone pushes and kitchen announcements.",
+      "fields": {
+        "route": {
+          "name": "Route",
+          "description": "A route saved in the Nabu Flow panel. Its settings are used unless this call overrides them."
+        },
+        "who": {
+          "name": "Who",
+          "description": "A person key, a list of person keys, or all."
+        },
+        "channel": {
+          "name": "Channel",
+          "description": "Channel key from the Channels tab, like doors or garage."
+        },
+        "title": {
+          "name": "Title",
+          "description": "Notification title."
+        },
+        "message": {
+          "name": "Message",
+          "description": "Notification text."
+        },
+        "severity": {
+          "name": "Severity",
+          "description": "Sets the card color and quiet-mode behavior. Critical also mirrors to the critical log channel."
+        },
+        "discord": {
+          "name": "Discord",
+          "description": "Post to Discord. Turn off for a phone-only notification."
+        },
+        "phone": {
+          "name": "Phone",
+          "description": "Phone push level. Auto sends a loud push only for critical severity."
+        },
+        "presence": {
+          "name": "Presence",
+          "description": "Aware sends quiet pushes to people who are away. Home only skips them. Ignore treats everyone the same."
+        },
+        "announce": {
+          "name": "Announce",
+          "description": "Speak the notification on the announce device when someone is home."
+        },
+        "camera_entity": {
+          "name": "Camera",
+          "description": "Attach a snapshot from this camera to the Discord post."
+        },
+        "link": {
+          "name": "Link",
+          "description": "A URL the Discord card opens."
+        },
+        "dedupe_key": {
+          "name": "Dedupe key",
+          "description": "Calls sharing a key are limited by the cooldown. Defaults to the route."
+        },
+        "cooldown": {
+          "name": "Cooldown",
+          "description": "Seconds to ignore repeats of the same key. Overrides the route's cooldown."
+        }
+      }
+    }
+  }
+}

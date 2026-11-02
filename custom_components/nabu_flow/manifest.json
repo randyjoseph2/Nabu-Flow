@@ -1,0 +1,14 @@
+{
+  "domain": "nabu_flow",
+  "name": "Nabu Flow",
+  "codeowners": ["@randyjoseph2"],
+  "config_flow": true,
+  "dependencies": ["frontend", "http", "panel_custom", "websocket_api"],
+  "documentation": "https://github.com/randyjoseph2/Nabu-Flow",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/randyjoseph2/Nabu-Flow/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}

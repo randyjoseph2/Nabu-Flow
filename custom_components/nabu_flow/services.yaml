@@ -1,0 +1,87 @@
+notify:
+  fields:
+    route:
+      required: false
+      example: front_door_open
+      selector:
+        text:
+    who:
+      required: false
+      example: all
+      selector:
+        text:
+    channel:
+      required: false
+      example: doors
+      selector:
+        text:
+    title:
+      required: false
+      example: Front door left open
+      selector:
+        text:
+    message:
+      required: false
+      example: Open for 10 minutes
+      selector:
+        text:
+          multiline: true
+    severity:
+      required: false
+      selector:
+        select:
+          translation_key: severity
+          options:
+            - info
+            - heads_up
+            - critical
+    discord:
+      required: false
+      selector:
+        boolean:
+    phone:
+      required: false
+      selector:
+        select:
+          translation_key: phone
+          options:
+            - auto
+            - none
+            - normal
+            - urgent
+            - critical
+    presence:
+      required: false
+      selector:
+        select:
+          translation_key: presence
+          options:
+            - aware
+            - ignore
+            - home_only
+    announce:
+      required: false
+      selector:
+        boolean:
+    camera_entity:
+      required: false
+      selector:
+        entity:
+          domain: camera
+    link:
+      required: false
+      example: https://example.com/dashboard
+      selector:
+        text:
+    dedupe_key:
+      required: false
+      selector:
+        text:
+    cooldown:
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 86400
+          unit_of_measurement: s
+          mode: box
