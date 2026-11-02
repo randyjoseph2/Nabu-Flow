@@ -177,6 +177,8 @@ pages:
     path: /newui-4-0/cameras
 ```
 
+A page can show a count bubble from any numeric entity with `badge`, for example `badge: sensor.chore_quest_open`. It hides when the value is 0.
+
 ## Alerts Flow
 
 Alerts Flow is the always-visible side of Nabu Flow: a ticker strip that shows what needs attention right now. Rules live in the panel (Alerts tab) and are evaluated on the server, so snooze and dismiss are the same on every phone and tablet.

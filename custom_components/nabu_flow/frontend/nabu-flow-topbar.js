@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.4.6. The logo is the Assist button.
+   Version 0.4.7. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -18,6 +18,7 @@
      pages:
        - label: Home
          path: /newui-4-0/home-2-0
+         badge: sensor.chore_quest_open   (optional; a count bubble on the pill, hidden at 0)
        - label: Cameras
          path: /newui-4-0/cameras
 */
@@ -49,6 +50,9 @@
     '.pills::-webkit-scrollbar{display:none}',
     '.pill{flex:none;scroll-snap-align:center;display:flex;align-items:center;gap:6px;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);color:var(--secondary-text-color,#9aa0ad);font-size:17px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}',
     '.pill ha-icon{--mdc-icon-size:18px}',
+    '.bdg{display:none;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;margin-left:2px;border-radius:10px;background:#ff5a4f;color:#fff;font-size:12px;font-weight:800;line-height:1}',
+    '.bdg.show{display:inline-flex}',
+    '.pill.on .bdg{background:var(--nb-ink);color:var(--nb-accent)}',
     '.pill.on{background:var(--nb-accent);border-color:var(--nb-accent);color:var(--nb-ink);font-weight:700}'
   ].join('');
 
@@ -98,6 +102,7 @@
       this._hass = h;
       if (this._strip) { this._strip.hass = h; }
       this._refreshActive();
+      this._refreshBadges();
     }
 
     connectedCallback() {
@@ -184,12 +189,30 @@
         var on = this._active && norm(pg.path) === this._active;
         h += '<button class="pill' + (on ? ' on' : '') + '" data-act="page" data-path="' + esc(pg.path) + '">';
         if (pg.icon) { h += '<ha-icon icon="' + esc(pg.icon) + '"></ha-icon>'; }
-        h += esc(pg.label || pg.path) + '</button>';
+        h += esc(pg.label || pg.path);
+        if (pg.badge) { h += '<span class="bdg" data-ent="' + esc(pg.badge) + '"></span>'; }
+        h += '</button>';
       }
       h += '</div></div>';
       this.shadowRoot.innerHTML = h;
       this._mountStrip();
       this._centerActive();
+      this._refreshBadges();
+    }
+
+    _refreshBadges() {
+      if (!this._hass || !this.shadowRoot) { return; }
+      var list = this.shadowRoot.querySelectorAll('.bdg');
+      for (var i = 0; i < list.length; i++) {
+        var st = this._hass.states[list[i].getAttribute('data-ent')];
+        var n = st ? parseFloat(st.state) : 0;
+        if (n > 0) {
+          list[i].textContent = n > 99 ? '99+' : String(Math.round(n));
+          list[i].classList.add('show');
+        } else {
+          list[i].classList.remove('show');
+        }
+      }
     }
 
     _mountStrip() {
@@ -222,7 +245,7 @@
       var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
       window.addEventListener('error', onErr);
       var s = document.createElement('script');
-      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=0.4.6&fb=1';
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=0.4.7&fb=1';
       s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
       s.onload = function () {
         window.removeEventListener('error', onErr);
