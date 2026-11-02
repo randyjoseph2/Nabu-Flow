@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Camera snapshots are now attached to phone pushes as well as Discord (iOS attachment and Android image), when the snapshot path is under www
+
 ## 0.2.0
 
 - Dashboard card `custom:nabu-flow-card`: recent notifications, quiet-mode switch, optional test button (loads automatically, works for non-admin users)

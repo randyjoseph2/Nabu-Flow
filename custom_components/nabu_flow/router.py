@@ -76,6 +76,7 @@ def build_plan(
         "suppressed": None,
         "discord": None,
         "pushes": [],
+        "camera_entity": "",
         "announce": None,
         "dedupe": None,
         "warnings": warnings,
@@ -113,6 +114,7 @@ def build_plan(
     camera = str(pick("camera_entity", "") or "").strip()
 
     plan["severity"] = sev
+    plan["camera_entity"] = camera
     plan["title"] = title
     plan["message"] = message
 

@@ -47,6 +47,15 @@ class NabuManager:
         configured = self.store.config["settings"].get("snapshot_path")
         return configured or self.hass.config.path("www", "nabu_snapshot.jpg")
 
+    def _snapshot_url(self, path: str) -> str:
+        """Local URL for the saved snapshot, only when it lives under /config/www."""
+        if not path:
+            return ""
+        www = self.hass.config.path("www") + "/"
+        if not path.startswith(www):
+            return ""
+        return "/local/" + path[len(www):] + "?t=" + str(int(time.time()))
+
     async def _call(self, service: str, data: dict[str, Any], label: str, errors: list[str]) -> bool:
         domain, _, name = service.partition(".")
         if not name or not self.hass.services.has_service(domain, name):
@@ -100,18 +109,21 @@ class NabuManager:
 
     async def _run(self, plan: dict[str, Any], entry: dict[str, Any], errors: list[str]) -> None:
         discord = plan["discord"]
+        snap_path = ""
+        camera = plan.get("camera_entity") or ""
+        if camera and (discord or plan["pushes"]):
+            path = self._snapshot_path()
+            if await self._call(
+                "camera.snapshot",
+                {"entity_id": camera, "filename": path},
+                "camera snapshot",
+                errors,
+            ):
+                snap_path = path
         if discord:
             payload: dict[str, Any] = {"embed": discord["embed"]}
-            if discord["camera_entity"]:
-                path = self._snapshot_path()
-                snap_ok = await self._call(
-                    "camera.snapshot",
-                    {"entity_id": discord["camera_entity"], "filename": path},
-                    "camera snapshot",
-                    errors,
-                )
-                if snap_ok:
-                    payload["images"] = [path]
+            if snap_path:
+                payload["images"] = [snap_path]
             ok = await self._call(
                 discord["service"],
                 {"message": discord["message"], "target": [discord["channel_id"]], "data": payload},
@@ -136,6 +148,10 @@ class NabuManager:
                     "push": {"thread-id": push["group"], "interruption-level": push["level"]},
                 },
             }
+            image_url = self._snapshot_url(snap_path)
+            if image_url:
+                data["data"]["image"] = image_url
+                data["data"]["attachment"] = {"url": image_url, "content-type": "jpeg"}
             if push["level"] == "critical":
                 data["data"]["push"]["sound"] = {"name": "default", "critical": 1, "volume": 1.0}
             ok = await self._call(push["service"], data, "push " + push["person"], errors)
