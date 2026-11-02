@@ -7,6 +7,7 @@
    Card config (all optional):
      type: custom:nabu-alerts-card
      compact: false          smaller padding
+     bubble: false           pill-shaped, for sitting beside a title in a wide header
      hide_when_clear: false  hide the card instead of showing the clear widget
      controls: true          show prev/next, snooze and list buttons
      only: [rule_id, ...]    show just these rules on this dashboard (optional)
@@ -72,7 +73,15 @@
     '.resume .chip{min-height:34px;font-size:13px;background:rgba(255,200,87,.14);border-color:rgba(255,200,87,.4);color:#FFC857}',
     '.camv{margin-top:8px;position:relative;border-radius:16px;overflow:hidden;background:#000}',
     '.camv img{display:block;width:100%;max-height:50vh;object-fit:contain}',
-    '.camv .b{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55)}'
+    '.camv .b{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55)}',
+    ':host(.bubble){position:relative}',
+    ':host(.bubble) .strip{min-height:50px;padding:3px 4px 3px 8px;border-radius:999px;background:rgba(255,255,255,.08)}',
+    ':host(.bubble) .strip.bord{border:1px solid var(--ac)}',
+    ':host(.bubble) .ic{width:34px;height:34px}',
+    ':host(.bubble) .msg{font-size:14px;-webkit-line-clamp:1}',
+    ':host(.bubble) .cam{width:44px;height:34px}',
+    ':host(.bubble) .pop,:host(.bubble) .camv,:host(.bubble) .resume{position:absolute;right:0;top:100%;z-index:20}',
+    ':host(.bubble) .pop,:host(.bubble) .camv{width:340px;max-width:calc(100vw - 24px)}'
   ].join('');
 
   function esc(v) {
@@ -119,6 +128,7 @@
 
     setConfig(config) {
       this._cfg = config || {};
+      if (this._cfg.bubble) { this.classList.add('bubble'); } else { this.classList.remove('bubble'); }
       this._render();
     }
     getCardSize() { return 1; }

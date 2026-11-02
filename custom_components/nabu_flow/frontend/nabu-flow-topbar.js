@@ -1,14 +1,19 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.4.0.
+   Version 0.4.0. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
      subtitle: Home Assistant        (optional)
-     assist: true                    (optional, default true)
+     assist: true                    (optional, default true; the logo opens Assist)
      menu: true                      (optional, default true; false hides the sidebar button)
      alerts: true                    (optional; shows the Alerts Flow strip under the title)
+     alerts:                         (or an object)
+       layout: strip | bubble | auto   strip = full width under the title (default),
+                                       bubble = pill beside the logo and title,
+                                       auto = bubble when the bar is 700px or wider
+       hide_when_clear, controls, only, skip
      alerts_compact: true            (optional; smaller strip)
      pages:
        - label: Home
@@ -26,12 +31,17 @@
     '.top{display:flex;align-items:center;gap:12px}',
     '.ib{width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--primary-text-color,#fff);border-radius:14px;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}',
     '.ib ha-icon{--mdc-icon-size:26px}',
-    '.ib.assist{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}',
     '.logo{width:52px;height:52px;flex:none}',
     '.txt{flex:1;min-width:0}',
     '.ttl{font-size:26px;line-height:1.1;font-weight:700;color:var(--primary-text-color,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.sub{margin-top:3px;font-size:14px;color:var(--secondary-text-color,#9aa0ad);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.alerts{padding:0 4px}',
+    '.alerts:empty{display:none}',
+    '.bub{flex:0 1 46%;min-width:0;position:relative}',
+    '.bub:empty{display:none}',
+    '.bub nabu-alert-strip{margin-top:0}',
+    '.logob{flex:none;display:block;border:0;background:none;padding:0;margin:0;cursor:pointer;border-radius:14px;-webkit-tap-highlight-color:transparent}',
+    '.logob:active{opacity:.7}',
     'nabu-alert-strip{display:block;margin-top:12px}',
     'nabu-alert-strip[hidden]{display:none}',
     '.pills{position:relative;display:flex;gap:10px;overflow-x:auto;margin-top:14px;padding:2px 14px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scroll-padding:0 14px;overscroll-behavior-x:contain}',
@@ -90,12 +100,22 @@
     }
 
     connectedCallback() {
+      var self = this;
+      if (window.ResizeObserver && !this._ro) {
+        this._lastW = 0;
+        this._ro = new window.ResizeObserver(function () {
+          var w = self.offsetWidth >= 700;
+          if (w !== self._lastW) { self._lastW = w; self._placeStrip(); }
+        });
+        this._ro.observe(this);
+      }
       window.addEventListener('location-changed', this._onLoc);
       window.addEventListener('popstate', this._onLoc);
       this._refreshActive();
     }
 
     disconnectedCallback() {
+      if (this._ro) { this._ro.disconnect(); this._ro = null; }
       window.removeEventListener('location-changed', this._onLoc);
       window.removeEventListener('popstate', this._onLoc);
     }
@@ -147,13 +167,12 @@
       if (cfg.menu !== false) {
         h += '<button class="ib" data-act="menu" aria-label="Menu"><ha-icon icon="mdi:menu"></ha-icon></button>';
       }
-      h += LOGO;
+      // The Nabu logo is the Assist button (set assist: false to make it a plain logo).
+      h += cfg.assist !== false ? '<button class="logob" data-act="assist" aria-label="Talk to Nabu">' + LOGO + '</button>' : LOGO;
       h += '<div class="txt"><div class="ttl">' + esc(cfg.title || 'Nabu') + '</div>';
       if (cfg.subtitle) { h += '<div class="sub">' + esc(cfg.subtitle) + '</div>'; }
       h += '</div>';
-      if (cfg.assist !== false) {
-        h += '<button class="ib assist" data-act="assist" aria-label="Talk to Nabu"><ha-icon icon="mdi:microphone-message"></ha-icon></button>';
-      }
+      if (cfg.alerts) { h += '<div class="bub"></div>'; }
       h += '</div>';
       if (cfg.alerts) { h += '<div class="alerts"></div>'; }
       h += '<div class="pills">';
@@ -172,16 +191,25 @@
     }
 
     _mountStrip() {
-      var slot = this.shadowRoot.querySelector('.alerts');
-      if (!slot) { return; }
+      if (!this._cfg.alerts) { return; }
       if (!this._strip) {
         if (!window.customElements.get('nabu-alert-strip')) { return; }
         this._strip = document.createElement('nabu-alert-strip');
         if (this._hass) { this._strip.hass = this._hass; }
       }
+      this._placeStrip();
+    }
+
+    // The strip is one element that moves between the full-width slot and the bubble slot.
+    _placeStrip() {
+      if (!this._strip) { return; }
       var opt = typeof this._cfg.alerts === 'object' ? this._cfg.alerts : {};
-      this._strip.setConfig({ compact: !!this._cfg.alerts_compact, hide_when_clear: !!opt.hide_when_clear, controls: opt.controls, only: opt.only, skip: opt.skip });
-      slot.appendChild(this._strip);
+      var layout = opt.layout || 'strip';
+      var bubble = layout === 'bubble' || (layout === 'auto' && this.offsetWidth >= 700);
+      var slot = this.shadowRoot.querySelector(bubble ? '.bub' : '.alerts');
+      if (!slot) { return; }
+      if (this._strip.parentNode !== slot) { slot.appendChild(this._strip); }
+      this._strip.setConfig({ compact: !!this._cfg.alerts_compact && !bubble, bubble: bubble, hide_when_clear: !!opt.hide_when_clear, controls: opt.controls, only: opt.only, skip: opt.skip });
     }
 
     _centerActive() {

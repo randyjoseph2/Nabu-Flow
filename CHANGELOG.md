@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased (alerts-flow)
+
+- Alerts strip lives in the Nabu Flow panel header on every tab.
+- Top bar: `alerts: {layout: strip | bubble | auto}`. `bubble` puts a pill beside the logo and title on wide bars; `auto` switches at 700px.
+- Top bar: the logo is now the Assist button; the separate microphone button is gone.
+
 ## 0.4.0
 - Alerts Flow: rule-based alerts evaluated on the server, with snooze and dismiss shared across every device
 - Rules watch an entity, a wildcard pattern or a device class, with operators, attributes, time ranges, templates, priority, placeholders, camera, tap actions and per-person visibility
