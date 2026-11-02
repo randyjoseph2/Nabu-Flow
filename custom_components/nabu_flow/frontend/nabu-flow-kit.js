@@ -3,7 +3,7 @@
 (function () {
   'use strict';
 
-  var TABS = [['routes', 'Routes'], ['audit', 'Audit'], ['people', 'People'], ['channels', 'Channels'], ['history', 'History'], ['settings', 'Settings']];
+  var TABS = [['routes', 'Routes'], ['alerts', 'Alerts'], ['audit', 'Audit'], ['people', 'People'], ['channels', 'Channels'], ['history', 'History'], ['settings', 'Settings']];
   var SEVS = [['info', 'Info'], ['heads_up', 'Heads-up'], ['critical', 'Critical']];
   var PHONES = [['auto', 'Auto (critical only)'], ['none', 'None'], ['normal', 'Normal'], ['urgent', 'Urgent (time sensitive)'], ['critical', 'Critical (loud)']];
   var PRES = [['aware', 'Aware'], ['ignore', 'Ignore'], ['home_only', 'Home only']];

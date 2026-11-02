@@ -1,13 +1,15 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.3.6.
+   Version 0.4.0.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
      subtitle: Home Assistant        (optional)
      assist: true                    (optional, default true)
      menu: true                      (optional, default true; false hides the sidebar button)
+     alerts: true                    (optional; shows the Alerts Flow strip under the title)
+     alerts_compact: true            (optional; smaller strip)
      pages:
        - label: Home
          path: /newui-4-0/home-2-0
@@ -29,6 +31,9 @@
     '.txt{flex:1;min-width:0}',
     '.ttl{font-size:26px;line-height:1.1;font-weight:700;color:var(--primary-text-color,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.sub{margin-top:3px;font-size:14px;color:var(--secondary-text-color,#9aa0ad);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.alerts{padding:0 4px}',
+    'nabu-alert-strip{display:block;margin-top:12px}',
+    'nabu-alert-strip[hidden]{display:none}',
     '.pills{position:relative;display:flex;gap:10px;overflow-x:auto;margin-top:14px;padding:2px 14px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scroll-padding:0 14px;overscroll-behavior-x:contain}',
     '.pills::-webkit-scrollbar{display:none}',
     '.pill{flex:none;scroll-snap-align:center;display:flex;align-items:center;gap:6px;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);color:var(--secondary-text-color,#9aa0ad);font-size:17px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}',
@@ -61,6 +66,7 @@
       this._cfg = { pages: [] };
       this._active = '';
       this._onLoc = this._refreshActive.bind(this);
+      this._strip = null;
       this.shadowRoot.addEventListener('click', this._onClick.bind(this));
     }
 
@@ -79,6 +85,7 @@
 
     set hass(h) {
       this._hass = h;
+      if (this._strip) { this._strip.hass = h; }
       this._refreshActive();
     }
 
@@ -147,7 +154,9 @@
       if (cfg.assist !== false) {
         h += '<button class="ib assist" data-act="assist" aria-label="Talk to Nabu"><ha-icon icon="mdi:microphone-message"></ha-icon></button>';
       }
-      h += '</div><div class="pills">';
+      h += '</div>';
+      if (cfg.alerts) { h += '<div class="alerts"></div>'; }
+      h += '<div class="pills">';
       var pages = cfg.pages;
       for (var i = 0; i < pages.length; i++) {
         var pg = pages[i];
@@ -158,7 +167,21 @@
       }
       h += '</div></div>';
       this.shadowRoot.innerHTML = h;
+      this._mountStrip();
       this._centerActive();
+    }
+
+    _mountStrip() {
+      var slot = this.shadowRoot.querySelector('.alerts');
+      if (!slot) { return; }
+      if (!this._strip) {
+        if (!window.customElements.get('nabu-alert-strip')) { return; }
+        this._strip = document.createElement('nabu-alert-strip');
+        if (this._hass) { this._strip.hass = this._hass; }
+      }
+      var opt = typeof this._cfg.alerts === 'object' ? this._cfg.alerts : {};
+      this._strip.setConfig({ compact: !!this._cfg.alerts_compact, hide_when_clear: !!opt.hide_when_clear, controls: opt.controls });
+      slot.appendChild(this._strip);
     }
 
     _centerActive() {

@@ -23,6 +23,7 @@ class NabuManager:
         self.hass = hass
         self.store = store
         self._last_sent: dict[str, float] = {}
+        self.alerts: Any = None
 
     # ---------- helpers ----------
     def _away(self) -> set[str]:
@@ -185,6 +186,8 @@ class NabuManager:
         return {
             "notify_services": sorted("notify." + name for name in services),
             "persons": sorted(persons, key=lambda p: p["entity_id"]),
+            "weather": sorted(st.entity_id for st in self.hass.states.async_all("weather")),
+            "cameras": sorted(st.entity_id for st in self.hass.states.async_all("camera")),
         }
 
     def snapshot(self) -> dict[str, Any]:
@@ -194,5 +197,6 @@ class NabuManager:
             "people": self.store.config["people"],
             "channels": self.store.config["channels"],
             "routes": self.store.config["routes"],
+            "alerts": self.store.config["alerts"],
             "discovery": self.discovery(),
         }

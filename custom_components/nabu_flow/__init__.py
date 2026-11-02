@@ -15,6 +15,8 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from . import ws
+from .alerts import AlertEngine
+from .alerts_model import PRIORITIES
 from .const import (
     DATA_STATIC_REGISTERED,
     DOMAIN,
@@ -25,7 +27,10 @@ from .const import (
     PRESENCE_MODES,
     SERVICE_NOTIFY,
     SEVERITIES,
+    ALERTS_FILE,
     CARD_FILE,
+    SERVICE_ALERT,
+    SERVICE_ALERT_CLEAR,
     STATIC_URL,
     TOPBAR_FILE,
     VERSION,
@@ -69,6 +74,21 @@ SERVICE_SCHEMA = vol.Schema(
 )
 
 
+ALERT_SCHEMA = vol.Schema(
+    {
+        vol.Required("id"): cv.string,
+        vol.Required("message"): cv.string,
+        vol.Optional("name"): cv.string,
+        vol.Optional("priority"): vol.In(PRIORITIES),
+        vol.Optional("icon"): cv.string,
+        vol.Optional("duration"): vol.All(vol.Coerce(int), vol.Range(min=0, max=86400)),
+        vol.Optional("camera_entity"): cv.entity_id,
+        vol.Optional("tap_url"): cv.string,
+    }
+)
+ALERT_CLEAR_SCHEMA = vol.Schema({vol.Required("id"): cv.string})
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
@@ -85,6 +105,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     store = NabuStore(hass)
     await store.async_load()
     manager = NabuManager(hass, store)
+    manager.alerts = AlertEngine(hass, store, manager)
     hass.data[DOMAIN] = manager
 
     ws.async_register(hass)
@@ -92,7 +113,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not hass.data.get("nabu_flow_card_registered"):
         # Modern browsers load the module list, older WebViews (some tablets and
         # displays) only load the es5 list, so register both. A browser reads one.
-        for card_file in (CARD_FILE, TOPBAR_FILE):
+        for card_file in (CARD_FILE, ALERTS_FILE, TOPBAR_FILE):
             card_url = f"{STATIC_URL}/{card_file}?v={VERSION}"
             frontend.add_extra_js_url(hass, card_url)
             frontend.add_extra_js_url(hass, card_url, es5=True)
@@ -116,12 +137,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def _handle_notify(call: ServiceCall) -> None:
         await manager.async_notify(dict(call.data), source="service")
 
+    async def _handle_alert(call: ServiceCall) -> None:
+        await manager.alerts.async_raise(dict(call.data))
+
+    async def _handle_alert_clear(call: ServiceCall) -> None:
+        await manager.alerts.async_clear(call.data["id"])
+
     hass.services.async_register(DOMAIN, SERVICE_NOTIFY, _handle_notify, schema=SERVICE_SCHEMA)
+    hass.services.async_register(DOMAIN, SERVICE_ALERT, _handle_alert, schema=ALERT_SCHEMA)
+    hass.services.async_register(DOMAIN, SERVICE_ALERT_CLEAR, _handle_alert_clear, schema=ALERT_CLEAR_SCHEMA)
+    await manager.alerts.async_start()
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    hass.services.async_remove(DOMAIN, SERVICE_NOTIFY)
+    manager = hass.data.get(DOMAIN)
+    if manager is not None and manager.alerts is not None:
+        manager.alerts.async_stop()
+    for service in (SERVICE_NOTIFY, SERVICE_ALERT, SERVICE_ALERT_CLEAR):
+        hass.services.async_remove(DOMAIN, service)
     frontend.async_remove_panel(hass, PANEL_URL_PATH)
     hass.data.pop(DOMAIN, None)
     return True

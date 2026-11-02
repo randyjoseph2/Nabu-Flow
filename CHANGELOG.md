@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+- Alerts Flow: rule-based alerts evaluated on the server, with snooze and dismiss shared across every device
+- Rules watch an entity, a wildcard pattern or a device class, with operators, attributes, time ranges, templates, priority, placeholders, camera, tap actions and per-person visibility
+- Modes: while true, stay until dismissed, or flash on any state change
+- A rule can also fire a Nabu route (Discord and phone) the first time it appears
+- `nabu-alert-strip` inside `custom:nabu-top-bar` (`alerts: true`) and the standalone `custom:nabu-alerts-card`: cycling, swipe, snooze, list, camera view, and a clear-state message, clock or weather
+- New Alerts tab in the panel: rules, live preview, match checker, display settings, AlertTicker importer and activity log
+- New actions `nabu_flow.alert` and `nabu_flow.alert_clear` for one-off alerts; new `nabu_flow_alert` event
+
 ## 0.3.6
 - New `tap_url` option: tapping the phone push opens that dashboard path (for example /newui-4-0/cameras).
 

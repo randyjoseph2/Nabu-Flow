@@ -1,7 +1,8 @@
 /* Nabu Flow panel. Plain JS on purpose: no template literals, no emoji, bare
-   customElements.define (iOS companion WebView rules). Version 0.3.6.
+   customElements.define (iOS companion WebView rules). Version 0.4.0.
    Bump the ?v= below together with VERSION in const.py to bust caches. */
-import './nabu-flow-kit.js?v=0.3.6';
+import './nabu-flow-kit.js?v=0.4.0';
+import './nabu-flow-alerts-tab.js?v=0.4.0';
 
 (function () {
   'use strict';
@@ -128,17 +129,18 @@ import './nabu-flow-kit.js?v=0.3.6';
       if (this._err) { body = '<div class="card bad">' + esc(this._err) + '</div>'; }
       else if (!this._data) { body = '<div class="card muted">Loading...</div>'; }
       else {
-        body = ({ routes: '_vRoutes', audit: '_vAudit', people: '_vPeople', channels: '_vChannels', history: '_vHistory', settings: '_vSettings' })[this._tab];
+        body = ({ routes: '_vRoutes', alerts: '_vAlerts', audit: '_vAudit', people: '_vPeople', channels: '_vChannels', history: '_vHistory', settings: '_vSettings' })[this._tab];
         body = this[body]();
       }
       var tabs = TABS.map(function (t) {
         return '<button class="tab' + (t[0] === self._tab ? ' on' : '') + '" data-act="tab" data-v="' + t[0] + '">' + t[1] + '</button>';
       }).join('');
       this._root.innerHTML = '<style>' + CSS + '</style><div class="wrap"><div class="top"><ha-menu-button></ha-menu-button>' + FACE +
-        '<div><div class="ttl">Nabu Flow</div><div class="muted small">Notification routing for Home Assistant</div></div></div>' +
+        '<div><div class="ttl">Nabu Flow</div><div class="muted small">Notifications and alerts for Home Assistant</div></div></div>' +
         '<div class="tabs">' + tabs + '</div>' + body + '</div>';
       var m = this._root.querySelector('ha-menu-button');
       if (m) { m.hass = this._hass; m.narrow = this._narrow; }
+      if (this._tab === 'alerts' && this._data) { window.NabuFlowAlertsTab.after(this); }
     }
 
     _vRoutes() {
@@ -377,5 +379,6 @@ import './nabu-flow-kit.js?v=0.3.6';
     _a_audit_refresh() { this._audit = null; this._render(); this._loadAudit(); }
   }
 
+  window.NabuFlowAlertsTab.install(NabuFlowPanel.prototype);
   customElements.define('nabu-flow-panel', NabuFlowPanel);
 })();

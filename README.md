@@ -142,6 +142,7 @@ Critical alerts ignore presence. Everyone always gets them. A person whose prese
 | Tab | What it is for |
 |---|---|
 | Routes | Create, edit, test and delete routes. Each card shows its path and how many automations use it |
+| Alerts | Alerts Flow rules, live strip preview, display settings, AlertTicker import and the alert log |
 | Audit | Every automation that notifies, and whether it goes through Nabu |
 | People | Phones, presence entities, Discord IDs |
 | Channels | Discord channel IDs, plus which channels are the default, digest and critical log |
@@ -175,6 +176,39 @@ pages:
   - label: Cameras
     path: /newui-4-0/cameras
 ```
+
+## Alerts Flow
+
+Alerts Flow is the always-visible side of Nabu Flow: a ticker strip that shows what needs attention right now. Rules live in the panel (Alerts tab) and are evaluated on the server, so snooze and dismiss are the same on every phone and tablet.
+
+Show it inside the top bar:
+
+```yaml
+type: custom:nabu-top-bar
+title: NewUI 4.0
+alerts: true          # or alerts: {hide_when_clear: true}
+alerts_compact: false
+pages: [...]
+```
+
+Or use it on its own: `type: custom:nabu-alerts-card` (options `compact`, `hide_when_clear`, `controls`).
+
+A rule watches one entity, a pattern such as `sensor.*_battery`, a device class, or a template. It has a condition (operator and value, optionally on an attribute), an optional time window, a priority (critical, warning, info, low), a message with placeholders (`{name} {state} {entity} {device} {area} {trigger_time}` or full templates), an icon, an optional camera, a tap action and who sees it. Setting a Nabu route on the rule also sends a Discord post or phone push the first time the alert appears.
+
+Raise a one-off alert from an automation:
+
+```yaml
+action: nabu_flow.alert
+data:
+  id: dishwasher_done
+  message: Dishwasher is done
+  priority: info
+  duration: 600
+```
+
+Clear it with `nabu_flow.alert_clear`. Each alert change fires a `nabu_flow_alert` event.
+
+To migrate from AlertTicker, open the card's code editor, copy the YAML and paste it in Alerts, Import. Conversion is best effort, so review the rules and the warnings it lists.
 
 ## Events
 

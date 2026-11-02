@@ -44,7 +44,13 @@ class NabuStore:
         for section, value in raw.items():
             if section not in self.config or not isinstance(value, dict):
                 continue
-            if section == "settings":
+            if section == "alerts":
+                current = self.config["alerts"]
+                merged = {
+                    "settings": {**current["settings"], **(value.get("settings") or {})},
+                    "rules": {**current["rules"], **(value.get("rules") or {})},
+                }
+            elif section == "settings":
                 merged = {**self.config["settings"], **value}
             else:
                 merged = {**self.config[section], **value}

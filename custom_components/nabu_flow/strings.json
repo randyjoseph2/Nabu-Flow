@@ -97,6 +97,54 @@
           "description": "Seconds to ignore repeats of the same key. Overrides the route's cooldown."
         }
       }
+    },
+    "alert": {
+      "name": "Raise alert",
+      "description": "Show an alert in the Alerts Flow strip without an entity behind it. Use alert_clear to remove it.",
+      "fields": {
+        "id": {
+          "name": "ID",
+          "description": "A short key. Raising the same ID again updates that alert."
+        },
+        "message": {
+          "name": "Message",
+          "description": "Text shown in the alert."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Title used in the alert list and log."
+        },
+        "priority": {
+          "name": "Priority",
+          "description": "critical, warning, info or low."
+        },
+        "icon": {
+          "name": "Icon",
+          "description": "An mdi: icon."
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "Seconds until it clears itself. 0 keeps it until cleared or dismissed."
+        },
+        "camera_entity": {
+          "name": "Camera",
+          "description": "A camera to show with the alert."
+        },
+        "tap_url": {
+          "name": "Tap path",
+          "description": "Dashboard path to open when the alert is tapped."
+        }
+      }
+    },
+    "alert_clear": {
+      "name": "Clear alert",
+      "description": "Remove an alert raised with the alert action.",
+      "fields": {
+        "id": {
+          "name": "ID",
+          "description": "The ID used when the alert was raised."
+        }
+      }
     }
   }
 }

@@ -85,3 +85,61 @@ notify:
           max: 86400
           unit_of_measurement: s
           mode: box
+
+alert:
+  fields:
+    id:
+      required: true
+      example: dishwasher_done
+      selector:
+        text:
+    message:
+      required: true
+      example: Dishwasher is done
+      selector:
+        text:
+    name:
+      required: false
+      example: Dishwasher
+      selector:
+        text:
+    priority:
+      required: false
+      selector:
+        select:
+          options:
+            - critical
+            - warning
+            - info
+            - low
+    icon:
+      required: false
+      example: mdi:dishwasher
+      selector:
+        icon:
+    duration:
+      required: false
+      example: 600
+      selector:
+        number:
+          min: 0
+          max: 86400
+          unit_of_measurement: s
+    camera_entity:
+      required: false
+      selector:
+        entity:
+          domain: camera
+    tap_url:
+      required: false
+      example: /newui-4-0/cameras
+      selector:
+        text:
+
+alert_clear:
+  fields:
+    id:
+      required: true
+      example: dishwasher_done
+      selector:
+        text:
