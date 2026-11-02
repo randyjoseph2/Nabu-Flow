@@ -166,3 +166,9 @@ def test_convert_real_world_alertticker_shapes():
     assert tp["tap_action"]["service_data"] == {"entity_id": "input_boolean.tp"}
     assert rules["sensor_cam_count"]["template"] == "{{ states('alarm_control_panel.alarm_system') != 'disarmed' }}"
     assert any("glitch" in w for w in result["warnings"])
+
+
+def test_lone_surrogates_are_dropped():
+    rule = clean_rule({"name": "Alarm \ud83d\udea8", "message": "\ud83d\udea8 Alarm"})
+    rule["name"].encode("utf-8")
+    rule["message"].encode("utf-8")

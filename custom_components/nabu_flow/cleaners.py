@@ -18,7 +18,8 @@ def slugify(value: Any) -> str:
 def _text(value: Any, limit: int = 200) -> str:
     if value is None:
         return ""
-    return str(value).strip()[:limit]
+    # Drop lone surrogates (e.g. from split emoji escapes) so results always serialize.
+    return str(value).encode("utf-8", "ignore").decode("utf-8").strip()[:limit]
 
 
 def _digits(value: Any) -> str:
