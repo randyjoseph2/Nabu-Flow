@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.3.0.
+   Version 0.3.1.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -27,9 +27,9 @@
     '.txt{flex:1;min-width:0}',
     '.ttl{font-size:26px;line-height:1.1;font-weight:700;color:var(--primary-text-color,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.sub{margin-top:3px;font-size:14px;color:var(--secondary-text-color,#9aa0ad);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '.pills{display:flex;gap:10px;overflow-x:auto;margin-top:14px;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}',
+    '.pills{position:relative;display:flex;gap:10px;overflow-x:auto;margin-top:14px;padding:2px 14px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scroll-padding:0 14px;overscroll-behavior-x:contain}',
     '.pills::-webkit-scrollbar{display:none}',
-    '.pill{flex:none;display:flex;align-items:center;gap:6px;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);color:var(--secondary-text-color,#9aa0ad);font-size:17px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}',
+    '.pill{flex:none;scroll-snap-align:center;display:flex;align-items:center;gap:6px;padding:11px 20px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.03);color:var(--secondary-text-color,#9aa0ad);font-size:17px;font-weight:500;font-family:inherit;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}',
     '.pill ha-icon{--mdc-icon-size:18px}',
     '.pill.on{background:var(--nb-accent);border-color:var(--nb-accent);color:var(--nb-ink);font-weight:700}'
   ].join('');
@@ -154,9 +154,23 @@
       }
       h += '</div></div>';
       this.shadowRoot.innerHTML = h;
-      var onEl = this.shadowRoot.querySelector('.pill.on');
-      if (onEl && onEl.scrollIntoView) {
-        try { onEl.scrollIntoView({ inline: 'center', block: 'nearest' }); } catch (e) { /* older WebViews */ }
+      this._centerActive();
+    }
+
+    _centerActive() {
+      var self = this;
+      var place = function () {
+        var box = self.shadowRoot.querySelector('.pills');
+        var on = self.shadowRoot.querySelector('.pill.on');
+        if (!box || !on || !box.clientWidth) { return false; }
+        var left = on.offsetLeft - (box.clientWidth - on.offsetWidth) / 2;
+        box.scrollLeft = Math.max(0, left);
+        return true;
+      };
+      if (!place()) {
+        window.requestAnimationFrame(function () {
+          if (!place()) { setTimeout(place, 120); }
+        });
       }
     }
   }

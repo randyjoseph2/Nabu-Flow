@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Top bar pills snap into place and the current page is centered on load
+
 ## 0.3.0
 
 - New `custom:nabu-top-bar` card: logo, title, Assist button and pill tabs that act as dashboard pages
