@@ -284,8 +284,20 @@ _AT_CLEAR = {"message": "message", "clock": "clock", "weather": "weather", "weat
 _AT_KNOWN = {
     "entity", "entity_filter", "entity_filter_exclude", "exclude", "device_class", "attribute", "operator", "state", "name",
     "message", "priority", "icon", "icon_color", "camera_entity", "persistent", "on_change", "auto_dismiss_after",
-    "time_range", "visible_to", "tap_action", "hold_action", "secondary_text", "theme", "enabled",
+    "time_range", "visible_to", "tap_action", "hold_action", "secondary_text", "theme", "enabled", "use_ha_icon",
+    "camera_in_card", "conditions", "conditions_logic",
 }
+_THEME_PRIORITY = {
+    "alarm": "critical", "emergency": "critical", "fire": "critical", "flood": "critical", "toxic": "critical",
+    "door": "warning", "window": "warning", "warning": "warning", "smoke": "warning", "battery3d": "warning",
+    "caution": "low", "vapor": "low",
+}
+_EMOJI_ICONS = {
+    "\U0001F6AA": "mdi:door", "\u26A0": "mdi:alert", "\u2139": "mdi:information", "\U0001F441": "mdi:eye",
+    "\U0001F7E1": "mdi:circle", "\U0001F6A8": "mdi:alarm-light", "\U0001F525": "mdi:fire", "\U0001F4A7": "mdi:water",
+}
+_EMOJI_RE = re.compile("[\U0001F000-\U0001FFFF\u2600-\u27BF\uFE0F\u200D]+")
+_TEMPLATE_OPS = {"=": "==", "!=": "!=", ">": ">", "<": "<", ">=": ">=", "<=": "<="}
 
 
 def _convert_action(raw: Any) -> dict[str, Any]:
@@ -293,17 +305,48 @@ def _convert_action(raw: Any) -> dict[str, Any]:
         return {"action": "default"}
     action = str(raw.get("action") or "")
     if action in ("perform-action", "call-service"):
-        return {
-            "action": "call-service",
-            "service": raw.get("perform_action") or raw.get("service") or "",
-            "service_data": raw.get("data") or raw.get("service_data") or {},
-        }
+        data = dict(raw.get("data") or raw.get("service_data") or {})
+        target = raw.get("target")
+        if isinstance(target, dict):
+            data.update(target)
+        return {"action": "call-service", "service": raw.get("perform_action") or raw.get("service") or "", "service_data": data}
     return {
         "action": action or "default",
         "navigation_path": raw.get("navigation_path", ""),
         "url_path": raw.get("url_path", ""),
         "entity": raw.get("entity", ""),
     }
+
+
+def _condition_template(conditions: list[Any]) -> str:
+    """AND-combine extra AlertTicker conditions into one template."""
+    parts = []
+    for cond in conditions:
+        if not isinstance(cond, dict) or not _ENTITY_RE.match(str(cond.get("entity") or "")):
+            continue
+        entity, op, value = cond["entity"], str(cond.get("operator") or "="), str(cond.get("state", ""))
+        if op in ("contains", "not_contains"):
+            expr = "'" + value.replace("'", "") + "' in states('" + entity + "')"
+            parts.append(expr if op == "contains" else "not (" + expr + ")")
+        elif op in _TEMPLATE_OPS and _num(value) is not None and op not in ("=", "!="):
+            parts.append("states('" + entity + "') | float(0) " + _TEMPLATE_OPS[op] + " " + str(_num(value)))
+        elif op in _TEMPLATE_OPS:
+            parts.append("states('" + entity + "') " + _TEMPLATE_OPS[op] + " '" + value.replace("'", "") + "'")
+    return "{{ " + " and ".join(parts) + " }}" if parts else ""
+
+
+def _clean_text(text: str) -> str:
+    return _EMOJI_RE.sub("", text).strip()
+
+
+def _icon_from_emoji(value: Any) -> str:
+    text = str(value or "")
+    if _ICON_RE.match(text.lower()):
+        return text
+    for emoji, icon in _EMOJI_ICONS.items():
+        if emoji in text:
+            return icon
+    return ""
 
 
 def convert_alertticker(config: Any) -> dict[str, Any]:
@@ -324,16 +367,34 @@ def convert_alertticker(config: Any) -> dict[str, Any]:
         settings["clear_mode"] = _AT_CLEAR.get(mode, "message")
         if mode in ("forecast", "weather_forecast"):
             warnings.append("Forecast display is not supported yet; used the weather widget instead.")
+    if config.get("clear_message"):
+        settings["clear_message"] = _clean_text(str(config["clear_message"])).rstrip(".")
     if config.get("clear_weather_entity"):
         settings["clear_weather_entity"] = config["clear_weather_entity"]
+    animation = str(config.get("cycle_animation") or "")
+    if animation in TRANSITIONS:
+        settings["transition"] = animation
+    elif animation:
+        warnings.append(f"The {animation} transition is not available; Alerts Flow uses fold, slide or fade.")
+
+    alerts = [a for a in (config.get("alerts") or []) if isinstance(a, dict)]
+    priorities = {str(a.get("priority", "")) for a in alerts}
+    themes = {a.get("theme") for a in alerts if a.get("theme")}
+    use_themes = len(alerts) > 1 and len(priorities) == 1 and len(themes) > 1
+    if use_themes:
+        warnings.append("Every alert had the same priority, so priority was set from each alert's theme (alarm = critical, door and warning = warning, caution and vapor = low, the rest = info).")
 
     rules: dict[str, dict[str, Any]] = {}
-    for index, alert in enumerate(config.get("alerts") or []):
-        if not isinstance(alert, dict):
-            continue
-        raw: dict[str, Any] = {k: alert.get(k) for k in ("entity", "device_class", "attribute", "operator", "state", "message", "icon", "camera_entity") if alert.get(k) is not None}
-        label = str(alert.get("name") or alert.get("entity") or alert.get("entity_filter") or alert.get("device_class") or f"Alert {index + 1}")
+    names: dict[str, int] = {}
+    for index, alert in enumerate(alerts):
+        raw: dict[str, Any] = {k: alert.get(k) for k in ("entity", "device_class", "attribute", "operator", "state", "camera_entity") if alert.get(k) is not None}
+        message = _clean_text(str(alert.get("message") or "")) or "{name} is {state}"
+        label = str(alert.get("name") or "") or (message if "{" not in message else "") or str(alert.get("entity") or alert.get("entity_filter") or alert.get("device_class") or f"Alert {index + 1}")
+        names[label] = names.get(label, 0) + 1
+        if names[label] > 1 and alert.get("entity"):
+            label += " - " + str(alert["entity"]).split(".", 1)[-1].replace("_", " ")
         raw["name"] = label
+        raw["message"] = message
         pattern = alert.get("entity_filter")
         if isinstance(pattern, dict):
             pattern = pattern.get("pattern") or pattern.get("include") or ""
@@ -341,8 +402,9 @@ def convert_alertticker(config: Any) -> dict[str, Any]:
             raw["entity_filter"] = str(pattern)
         raw["exclude"] = alert.get("entity_filter_exclude") or alert.get("exclude") or []
         raw["color"] = alert.get("icon_color") or ""
-        raw["secondary"] = alert.get("secondary_text") or ""
-        raw["priority"] = alert.get("priority", "warning")
+        raw["secondary"] = _clean_text(str(alert.get("secondary_text") or ""))
+        raw["icon"] = _icon_from_emoji(alert.get("icon")) or _icon_from_emoji(alert.get("message"))
+        raw["priority"] = _THEME_PRIORITY.get(str(alert.get("theme")), "info") if use_themes else alert.get("priority", "warning")
         if alert.get("persistent"):
             raw["mode"] = "persistent"
         elif alert.get("on_change"):
@@ -358,12 +420,16 @@ def convert_alertticker(config: Any) -> dict[str, Any]:
                 warnings.append(f"{label}: visible_to uses names; set Visible to in the editor to match your Nabu people.")
         raw["tap_action"] = _convert_action(alert.get("tap_action"))
         raw["hold_action"] = _convert_action(alert.get("hold_action"))
-        if alert.get("conditions"):
-            warnings.append(f"{label}: multi-entity conditions are not converted; add a template condition instead.")
-        skipped = sorted(k for k in alert if k not in _AT_KNOWN and k != "conditions" and k != "conditions_logic")
+        extra = [c for c in (alert.get("conditions") or []) if isinstance(c, dict)]
+        if extra:
+            if str(alert.get("conditions_logic") or "and").lower() == "or":
+                warnings.append(f"{label}: OR conditions are not converted; only the main condition was kept.")
+            else:
+                raw["template"] = _condition_template(extra)
+        skipped = sorted(k for k in alert if k not in _AT_KNOWN)
         if skipped:
             warnings.append(f"{label}: skipped " + ", ".join(skipped[:6]) + ("..." if len(skipped) > 6 else ""))
-        key = slugify(label) or f"alert_{index + 1}"
+        key = slugify(str(alert.get("entity") or label)) or f"alert_{index + 1}"
         base, n = key, 2
         while key in rules:
             key = f"{base}_{n}"

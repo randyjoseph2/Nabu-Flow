@@ -9,6 +9,8 @@
      compact: false          smaller padding
      hide_when_clear: false  hide the card instead of showing the clear widget
      controls: true          show prev/next, snooze and list buttons
+     only: [rule_id, ...]    show just these rules on this dashboard (optional)
+     skip: [rule_id, ...]    hide these rules on this dashboard (optional)
 */
 (function () {
   'use strict';
@@ -163,7 +165,14 @@
       this._restartTimer();
     }
 
-    _alerts() { return (this._data && this._data.alerts) || []; }
+    _alerts() {
+      var list = (this._data && this._data.alerts) || [], only = this._cfg.only, skip = this._cfg.skip;
+      if (!only && !skip) { return list; }
+      return list.filter(function (a) {
+        if (only && only.indexOf(a.rule_id) < 0) { return false; }
+        return !(skip && skip.indexOf(a.rule_id) >= 0);
+      });
+    }
     _current() { return this._alerts()[this._idx] || null; }
     _disp() { return (this._data && this._data.display) || {}; }
     _clearMode() { return this._data && !this._alerts().length ? this._disp().clear_mode : ''; }

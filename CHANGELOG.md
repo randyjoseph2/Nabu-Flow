@@ -7,6 +7,8 @@
 - A rule can also fire a Nabu route (Discord and phone) the first time it appears
 - `nabu-alert-strip` inside `custom:nabu-top-bar` (`alerts: true`) and the standalone `custom:nabu-alerts-card`: cycling, swipe, snooze, list, camera view, and a clear-state message, clock or weather
 - New Alerts tab in the panel: rules, live preview, match checker, display settings, AlertTicker importer and activity log
+- AlertTicker import maps targets on tap actions, extra AND conditions (as a template), emoji icons and themes (to priority)
+- Strip option `only` / `skip` (rule ids) to give each dashboard its own list
 - New actions `nabu_flow.alert` and `nabu_flow.alert_clear` for one-off alerts; new `nabu_flow_alert` event
 
 ## 0.3.6

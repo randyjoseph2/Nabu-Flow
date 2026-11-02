@@ -180,7 +180,7 @@
         if (this._hass) { this._strip.hass = this._hass; }
       }
       var opt = typeof this._cfg.alerts === 'object' ? this._cfg.alerts : {};
-      this._strip.setConfig({ compact: !!this._cfg.alerts_compact, hide_when_clear: !!opt.hide_when_clear, controls: opt.controls });
+      this._strip.setConfig({ compact: !!this._cfg.alerts_compact, hide_when_clear: !!opt.hide_when_clear, controls: opt.controls, only: opt.only, skip: opt.skip });
       slot.appendChild(this._strip);
     }
 

@@ -141,3 +141,28 @@ def test_convert_alertticker():
     assert any("visible_to" in w for w in result["warnings"])
     assert any("mystery" in w for w in result["warnings"])
     assert convert_alertticker("nope")["rules"] == {}
+
+
+def test_convert_real_world_alertticker_shapes():
+    result = convert_alertticker(
+        {
+            "cycle_animation": "glitch",
+            "clear_message": "All systems clear.",
+            "alerts": [
+                {"entity": "alarm_control_panel.alarm_system", "state": "triggered", "message": "\U0001F6A8 Alarm Triggered", "priority": 1, "theme": "alarm"},
+                {"entity": "input_boolean.tp", "state": "on", "message": "Restock Toilet Paper", "priority": 1, "theme": "notification", "icon": "\U0001F6AA",
+                 "tap_action": {"action": "call-service", "service": "input_boolean.turn_off", "target": {"entity_id": "input_boolean.tp"}}},
+                {"entity": "sensor.cam_count", "operator": ">=", "state": "1", "priority": 1, "theme": "motion", "conditions_logic": "and",
+                 "conditions": [{"entity": "alarm_control_panel.alarm_system", "operator": "!=", "state": "disarmed"}]},
+            ],
+        }
+    )
+    rules = result["rules"]
+    assert result["settings"]["clear_message"] == "All systems clear"
+    assert rules["alarm_control_panel_alarm_system"]["priority"] == "critical"
+    assert rules["alarm_control_panel_alarm_system"]["message"] == "Alarm Triggered"
+    tp = rules["input_boolean_tp"]
+    assert tp["icon"] == "mdi:door" and tp["priority"] == "info"
+    assert tp["tap_action"]["service_data"] == {"entity_id": "input_boolean.tp"}
+    assert rules["sensor_cam_count"]["template"] == "{{ states('alarm_control_panel.alarm_system') != 'disarmed' }}"
+    assert any("glitch" in w for w in result["warnings"])
