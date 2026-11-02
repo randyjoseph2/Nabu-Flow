@@ -2,7 +2,7 @@
    swipe, tap/hold actions, snooze, list, camera, and a clear-state clock or weather widget.
    Used inside custom:nabu-top-bar (alerts: true) and as custom:nabu-alerts-card.
    Plain JS on purpose: no template literals, no emoji, bare customElements.define
-   (iOS companion WebView rules). Version 0.4.1.
+   (iOS companion WebView rules). Version 0.4.2.
 
    Card config (all optional):
      type: custom:nabu-alerts-card
@@ -157,21 +157,24 @@
     _subscribe() {
       var self = this;
       this._subscribing = true;
+      this._dbg = 'subscribing';
+      if (!this._hass.connection || !this._hass.connection.subscribeMessage) { this._dbg = 'no connection'; this._subscribing = false; return; }
       this._hass.connection.subscribeMessage(function (ev) { self._onData(ev); }, { type: 'nabu_flow/alerts_subscribe' }).then(function (unsub) {
         self._unsub = unsub;
         self._subscribing = false;
-      }).catch(function () { self._subscribing = false; });
+      }).catch(function (e) { self._subscribing = false; self._dbg = 'subscribe failed: ' + ((e && (e.message || e.code)) || String(e)); });
     }
 
     _onData(data) {
       var keep = this._current() ? this._current().key : '';
       this._data = data;
+      this._dbg = 'got data';
       var alerts = data.alerts || [];
       var at = -1;
       for (var i = 0; i < alerts.length; i++) { if (alerts[i].key === keep) { at = i; } }
       this._idx = at >= 0 ? at : Math.min(this._idx, Math.max(0, alerts.length - 1));
       if (!alerts.length) { this._menu = ''; this._cam = false; }
-      this._render();
+      try { this._render(); } catch (e) { this._dbg = 'draw failed: ' + (e && e.message); }
       this._restartTimer();
     }
 

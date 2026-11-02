@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.4.1. The logo is the Assist button.
+   Version 0.4.2. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -39,6 +39,7 @@
     '.alerts:empty{display:none}',
     '.bub{flex:0 1 46%;min-width:0;position:relative}',
     '.bub:empty{display:none}',
+    '.dbg{font-size:11px;color:#ff9a9d;text-align:right;line-height:1.2}',
     '.bub nabu-alert-strip{margin-top:0}',
     '.logob{flex:none;display:block;border:0;background:none;padding:0;margin:0;cursor:pointer;border-radius:14px;-webkit-tap-highlight-color:transparent}',
     '.logob:active{opacity:.7}',
@@ -116,6 +117,7 @@
 
     disconnectedCallback() {
       if (this._ro) { this._ro.disconnect(); this._ro = null; }
+      if (this._diagTimer) { clearInterval(this._diagTimer); this._diagTimer = null; }
       window.removeEventListener('location-changed', this._onLoc);
       window.removeEventListener('popstate', this._onLoc);
     }
@@ -192,6 +194,10 @@
 
     _mountStrip() {
       if (!this._cfg.alerts) { return; }
+      if (!this._diagTimer) {
+        var me = this;
+        this._diagTimer = setInterval(function () { me._diag(); }, 5000);
+      }
       if (!this._strip) {
         if (!window.customElements.get('nabu-alert-strip')) {
           // The alerts file can finish loading after this card; mount as soon as it does.
@@ -206,6 +212,26 @@
         if (this._hass) { this._strip.hass = this._hass; }
       }
       this._placeStrip();
+    }
+
+    // If the alerts strip can not show, say why on screen instead of failing silently.
+    _diag() {
+      var self = this;
+      if (!this._cfg.alerts) { return; }
+      var slot = this.shadowRoot.querySelector('.bub') || this.shadowRoot.querySelector('.alerts');
+      if (!slot) { return; }
+      var old = slot.querySelector('.dbg');
+      if (old) { old.parentNode.removeChild(old); }
+      var why = '';
+      if (!window.customElements.get('nabu-alert-strip')) { why = 'alerts file did not load'; }
+      else if (!this._strip) { why = 'strip not created'; }
+      else if (this._strip.hidden) { why = this._strip._dbg || 'no data yet'; }
+      if (why) {
+        var d = document.createElement('div');
+        d.className = 'dbg';
+        d.textContent = 'alerts: ' + why;
+        slot.appendChild(d);
+      }
     }
 
     // The strip is one element that moves between the full-width slot and the bubble slot.
