@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.4.3. The logo is the Assist button.
+   Version 0.4.4. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -32,12 +32,12 @@
     '.ib{width:44px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--primary-text-color,#fff);border-radius:14px;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}',
     '.ib ha-icon{--mdc-icon-size:26px}',
     '.logo{width:52px;height:52px;flex:none}',
-    '.txt{flex:1;min-width:0}',
+    '.txt{flex:0 1 auto;min-width:0}',
     '.ttl{font-size:26px;line-height:1.1;font-weight:700;color:var(--primary-text-color,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.sub{margin-top:3px;font-size:14px;color:var(--secondary-text-color,#9aa0ad);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
     '.alerts{padding:0 4px}',
     '.alerts:empty{display:none}',
-    '.bub{flex:0 1 46%;min-width:0;position:relative}',
+    '.bub{flex:1 1 0;min-width:0;position:relative}',
     '.bub:empty{display:none}',
     '.dbg{font-size:11px;color:#ff9a9d;text-align:right;line-height:1.2}',
     '.bub nabu-alert-strip{margin-top:0}',
@@ -222,7 +222,7 @@
       var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
       window.addEventListener('error', onErr);
       var s = document.createElement('script');
-      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=0.4.3&fb=1';
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=0.4.4&fb=1';
       s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
       s.onload = function () {
         window.removeEventListener('error', onErr);

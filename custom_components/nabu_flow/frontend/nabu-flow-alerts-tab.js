@@ -1,6 +1,6 @@
 /* Nabu Flow panel: Alerts tab (rules, settings, AlertTicker import, log).
    Loaded by nabu-flow-panel.js, kept separate for the iOS 24KB resource limit.
-   Plain JS: no template literals, no emoji. Version 0.4.3. */
+   Plain JS: no template literals, no emoji. Version 0.4.4. */
 (function () {
   'use strict';
 
