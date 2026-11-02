@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.4.0. The logo is the Assist button.
+   Version 0.4.1. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -193,7 +193,15 @@
     _mountStrip() {
       if (!this._cfg.alerts) { return; }
       if (!this._strip) {
-        if (!window.customElements.get('nabu-alert-strip')) { return; }
+        if (!window.customElements.get('nabu-alert-strip')) {
+          // The alerts file can finish loading after this card; mount as soon as it does.
+          if (!this._waiting) {
+            var self = this;
+            this._waiting = true;
+            window.customElements.whenDefined('nabu-alert-strip').then(function () { self._waiting = false; self._mountStrip(); });
+          }
+          return;
+        }
         this._strip = document.createElement('nabu-alert-strip');
         if (this._hass) { this._strip.hass = this._hass; }
       }

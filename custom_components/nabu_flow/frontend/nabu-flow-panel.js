@@ -1,8 +1,8 @@
 /* Nabu Flow panel. Plain JS on purpose: no template literals, no emoji, bare
-   customElements.define (iOS companion WebView rules). Version 0.4.0.
+   customElements.define (iOS companion WebView rules). Version 0.4.1.
    Bump the ?v= below together with VERSION in const.py to bust caches. */
-import './nabu-flow-kit.js?v=0.4.0';
-import './nabu-flow-alerts-tab.js?v=0.4.0';
+import './nabu-flow-kit.js?v=0.4.1';
+import './nabu-flow-alerts-tab.js?v=0.4.1';
 
 (function () {
   'use strict';
@@ -148,7 +148,15 @@ import './nabu-flow-alerts-tab.js?v=0.4.0';
     // moved into each new render so it keeps its subscription and position in the cycle.
     _mountStrip() {
       var slot = this._root.querySelector('#topstrip');
-      if (!slot || !window.customElements.get('nabu-alert-strip')) { return; }
+      if (!slot) { return; }
+      if (!window.customElements.get('nabu-alert-strip')) {
+        if (!this._waiting) {
+          var self = this;
+          this._waiting = true;
+          window.customElements.whenDefined('nabu-alert-strip').then(function () { self._waiting = false; self._mountStrip(); });
+        }
+        return;
+      }
       if (!this._strip) {
         this._strip = document.createElement('nabu-alert-strip');
         this._strip.setConfig({});
