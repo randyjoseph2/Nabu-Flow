@@ -1,5 +1,5 @@
 /* Nabu Flow dashboard card. Plain JS on purpose: no template literals, no emoji,
-   bare customElements.define (iOS companion WebView rules). Version 0.3.4.
+   bare customElements.define (iOS companion WebView rules). Version 0.3.5.
    Card config:
      type: custom:nabu-flow-card
      title: Nabu            (optional)

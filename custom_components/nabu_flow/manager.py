@@ -152,10 +152,10 @@ class NabuManager:
             if plan.get("actions"):
                 data["data"]["actions"] = plan["actions"]
                 data["data"]["tag"] = push["group"] + "-" + str(int(time.time()))
-            image_url = self._snapshot_url(snap_path)
-            if image_url:
-                data["data"]["image"] = image_url
-                data["data"]["attachment"] = {"url": image_url, "content-type": "jpeg"}
+            if camera:
+                # The companion app fetches the picture itself through the authenticated
+                # camera proxy, so there is no /local file to 404 on.
+                data["data"]["entity_id"] = camera
             if push["level"] == "critical":
                 data["data"]["push"]["sound"] = {"name": "default", "critical": 1, "volume": 1.0}
             ok = await self._call(push["service"], data, "push " + push["person"], errors)

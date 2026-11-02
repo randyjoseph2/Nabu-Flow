@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.3.5
+- Phone pushes show the camera picture through the app's camera proxy (`entity_id`) instead of a /local file that returned 404.
+
 ## 0.3.4
 - Phone pushes can carry action buttons: pass `actions` (list of `action`, `title`, optional `destructive`) to `nabu_flow.notify`.
 - Top bar no longer errors if it is loaded twice.
