@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+- Cards and top bar also load in older display WebViews (es5 list), so kiosk displays no longer show a red missing-card error
+
 ## 0.3.2
 
 - Top bar: `menu: false` hides the sidebar button (for kiosk displays)

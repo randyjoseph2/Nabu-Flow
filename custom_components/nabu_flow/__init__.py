@@ -78,8 +78,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ws.async_register(hass)
     await _async_register_static(hass)
     if not hass.data.get("nabu_flow_card_registered"):
-        frontend.add_extra_js_url(hass, f"{STATIC_URL}/{CARD_FILE}?v={VERSION}")
-        frontend.add_extra_js_url(hass, f"{STATIC_URL}/{TOPBAR_FILE}?v={VERSION}")
+        # Modern browsers load the module list, older WebViews (some tablets and
+        # displays) only load the es5 list, so register both. A browser reads one.
+        for card_file in (CARD_FILE, TOPBAR_FILE):
+            card_url = f"{STATIC_URL}/{card_file}?v={VERSION}"
+            frontend.add_extra_js_url(hass, card_url)
+            frontend.add_extra_js_url(hass, card_url, es5=True)
         hass.data["nabu_flow_card_registered"] = True
 
     try:
