@@ -2,7 +2,7 @@
    swipe, tap/hold actions, snooze, list, camera, and a clear-state clock or weather widget.
    Used inside custom:nabu-top-bar (alerts: true) and as custom:nabu-alerts-card.
    Plain JS on purpose: no template literals, no emoji, bare customElements.define
-   (iOS companion WebView rules). Version 1.0.0-beta.
+   (iOS companion WebView rules). Version 1.1.0-beta.
 
    Card config (all optional):
      type: custom:nabu-alerts-card

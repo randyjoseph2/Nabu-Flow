@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0.0-beta (V1.0-Beta)
+## 1.1.0-beta (V1.1-Beta)
 
-First release with Alerts Flow and the merged top bar.
+First release with Alerts Flow and the merged top bar. The earlier V1.0-Beta release was cut from older code, so install V1.1-Beta instead.
 
 - Alerts strip lives in the Nabu Flow panel header on every tab.
 - Top bar: `alerts: {layout: strip | bubble | auto}`. `bubble` puts a pill beside the logo and title on wide bars; `auto` switches at 700px.
