@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 0.4.7. The logo is the Assist button.
+   Version 1.0.0-beta. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -245,7 +245,7 @@
       var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
       window.addEventListener('error', onErr);
       var s = document.createElement('script');
-      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=0.4.7&fb=1';
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=1.0.0-beta&fb=1';
       s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
       s.onload = function () {
         window.removeEventListener('error', onErr);

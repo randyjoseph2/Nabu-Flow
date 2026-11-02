@@ -1,12 +1,15 @@
 # Changelog
 
-## Unreleased (alerts-flow)
+## 1.0.0-beta (V1.0-Beta)
+
+First release with Alerts Flow and the merged top bar.
 
 - Alerts strip lives in the Nabu Flow panel header on every tab.
 - Top bar: `alerts: {layout: strip | bubble | auto}`. `bubble` puts a pill beside the logo and title on wide bars; `auto` switches at 700px.
 - Top bar: the logo is now the Assist button; the separate microphone button is gone.
+- Top bar: `alerts` loads its own file if a display skipped it, waits for it if it loads late, and says on screen why the strip is missing.
 
-## 0.4.7
+### Also in this release (0.4.7)
 - Top bar: a page can have a `badge` entity. A count bubble shows on that pill while the entity's state is above 0 (for example `badge: sensor.chore_quest_open` on the Chores page) and hides at 0.
 
 ## 0.4.0

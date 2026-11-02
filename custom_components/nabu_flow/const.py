@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 DOMAIN = "nabu_flow"
-VERSION = "0.4.7"
+VERSION = "1.0.0-beta"
 
 STORAGE_KEY = "nabu_flow.config"
 HISTORY_KEY = "nabu_flow.history"
