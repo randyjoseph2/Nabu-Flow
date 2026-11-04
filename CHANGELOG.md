@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.1-beta (V1.1.1-Beta)
 
 ### Alerts Flow: synced and smoother
 - Every strip and bubble (all pages, tablets, phones, kitchen display) now cycles from one shared server-time clock, so they show the same alert at the same moment.
