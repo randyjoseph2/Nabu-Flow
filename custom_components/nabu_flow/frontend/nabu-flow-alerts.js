@@ -29,7 +29,7 @@
     ':host{display:block;container-type:inline-size;--ac:#5EEAD4}',
     ':host([hidden]){display:none}',
     '*{box-sizing:border-box}',
-    '.strip{position:relative;display:flex;align-items:center;gap:6px;min-height:60px;padding:8px 6px 8px 10px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);overflow:hidden;color:var(--primary-text-color,#fff)}',
+    '.strip{position:relative;display:flex;align-items:center;gap:6px;min-height:60px;padding:8px 6px 8px 10px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.1);overflow:hidden;color:var(--primary-text-color,#fff)}',
     '.strip.bord{border-left:5px solid var(--ac)}',
     '.strip.compact{min-height:50px;padding:5px 6px 5px 10px}',
     '.strip.critical{animation:nb-glow 2.4s ease-in-out infinite}',
@@ -52,6 +52,8 @@
     '.b.on{background:rgba(255,255,255,.12)}',
     '.clear .ic{color:#5EEAD4}',
     '.big{font-size:28px;font-weight:700;letter-spacing:.5px;line-height:1.1}',
+    '.main{backface-visibility:hidden}',
+    '.out-fold,.in-fold,.out-slide,.in-slide,.out-fade,.in-fade{will-change:transform,opacity}',
     '.out-fold{animation:nb-fold-out .22s ease-in forwards}.in-fold{animation:nb-fold-in .26s ease-out}',
     '.out-slide{animation:nb-sl-out .2s ease-in forwards}.in-slide{animation:nb-sl-in .24s ease-out}',
     '.out-fade{animation:nb-fa-out .18s ease-in forwards}.in-fade{animation:nb-fa-in .22s ease-out}',
@@ -75,7 +77,7 @@
     '.camv img{display:block;width:100%;max-height:50vh;object-fit:contain}',
     '.camv .b{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55)}',
     ':host(.bubble){position:relative}',
-    ':host(.bubble) .strip{min-height:50px;padding:3px 4px 3px 8px;border-radius:999px;background:rgba(255,255,255,.08)}',
+    ':host(.bubble) .strip{min-height:50px;padding:3px 4px 3px 8px;border-radius:999px;background:rgba(255,255,255,.12)}',
     ':host(.bubble) .strip.bord{border:1px solid var(--ac)}',
     ':host(.bubble) .ic{width:34px;height:34px}',
     ':host(.bubble) .msg{font-size:14px;-webkit-line-clamp:1}',
@@ -107,7 +109,15 @@
     constructor() {
       super();
       this.attachShadow({ mode: 'open' });
+      var st = document.createElement('style');
+      st.textContent = CSS;
+      this._box = document.createElement('div');
+      this._box.style.display = 'contents';
+      this.shadowRoot.appendChild(st);
+      this.shadowRoot.appendChild(this._box);
       this._cfg = {};
+      this._off = 0;
+      this._manual = 0;
       this._data = null;
       this._idx = 0;
       this._menu = '';
@@ -137,7 +147,11 @@
     set hass(h) {
       this._hass = h;
       if (!this._unsub && !this._subscribing) { this._subscribe(); }
-      if (this._clearMode()) { this._render(); }
+      if (this._clearMode()) {
+        var d = this._disp(), w = d.clear_weather_entity && h && h.states ? h.states[d.clear_weather_entity] : null;
+        var k = w ? w.state + '|' + w.attributes.temperature : '';
+        if (k !== this._ck) { this._ck = k; this._render(); }
+      }
     }
 
     connectedCallback() {
@@ -165,14 +179,27 @@
       }).catch(function (e) { self._subscribing = false; self._dbg = 'subscribe failed: ' + ((e && (e.message || e.code)) || String(e)); });
     }
 
+    // server clock
+    _now() { return Date.now() + this._off; }
+    _cyc() { return Math.max(3, this._disp().cycle_seconds || 6) * 1000; }
+    _slotIdx(n) { return n > 1 ? Math.floor(this._now() / this._cyc()) % n : 0; }
+
     _onData(data) {
+      if (data.ts) { this._off = data.ts * 1000 - Date.now(); }
+      var sig = JSON.stringify([data.alerts, data.snoozed, data.display]);
+      if (sig === this._sig && this._data) { this._data = data; return; }
+      this._sig = sig;
       var keep = this._current() ? this._current().key : '';
       this._data = data;
       this._dbg = 'got data';
-      var alerts = data.alerts || [];
-      var at = -1;
-      for (var i = 0; i < alerts.length; i++) { if (alerts[i].key === keep) { at = i; } }
-      this._idx = at >= 0 ? at : Math.min(this._idx, Math.max(0, alerts.length - 1));
+      var alerts = this._alerts();
+      if (Date.now() < this._manual) {
+        var at = -1;
+        for (var i = 0; i < alerts.length; i++) { if (alerts[i].key === keep) { at = i; } }
+        this._idx = at >= 0 ? at : Math.min(this._idx, Math.max(0, alerts.length - 1));
+      } else {
+        this._idx = this._slotIdx(alerts.length);
+      }
       if (!alerts.length) { this._menu = ''; this._cam = false; }
       try { this._render(); } catch (e) { this._dbg = 'draw failed: ' + (e && e.message); }
       this._restartTimer();
@@ -192,13 +219,19 @@
 
     _restartTimer() {
       var self = this;
-      if (this._timer) { clearInterval(this._timer); this._timer = null; }
+      if (this._timer) { clearInterval(this._timer); clearTimeout(this._timer); this._timer = null; }
       if (!this._data) { return; }
       var n = this._alerts().length;
       if (n > 1) {
-        this._timer = setInterval(function () {
-          if (!self._menu && !self._cam && !self._touch) { self._go(self._idx + 1); }
-        }, Math.max(3, this._disp().cycle_seconds || 6) * 1000);
+        var next = function () {
+          var c = self._cyc();
+          self._timer = setTimeout(function () {
+            var m = self._alerts().length;
+            if (m > 1 && !self._menu && !self._cam && !self._touch && Date.now() >= self._manual) { self._go(self._slotIdx(m)); }
+            next();
+          }, c - (self._now() % c) + 30);
+        };
+        next();
       } else if (!n && /clock/.test(this._clearMode() || '')) {
         this._timer = setInterval(function () { self._render(); }, 15000);
       }
@@ -208,6 +241,7 @@
       var n = this._alerts().length;
       if (n < 2 || this._busy) { return; }
       to = (to % n + n) % n;
+      if (to === this._idx) { return; }
       var t = this._disp().transition || 'fold';
       var self = this;
       var main = this.shadowRoot.querySelector('.main');
@@ -221,7 +255,6 @@
       }, 210);
     }
 
-    // ---------- rendering ----------
     _iconBox(icon, color) {
       return '<div class="ic"' + (color ? ' style="color:' + esc(color) + '"' : '') + '><ha-icon icon="' + esc(icon) + '"></ha-icon></div>';
     }
@@ -229,14 +262,14 @@
     _render(anim) {
       var d = this._disp(), cfg = this._cfg, alerts = this._alerts();
       if (!this._data) { this.hidden = true; return; }
-      var h = '<style>' + CSS + '</style>';
+      var h = '';
       var cur = this._current();
       var compact = cfg.compact ? ' compact' : '';
       if (!cur) {
         var body = this._clearBody(d);
-        if (!body || cfg.hide_when_clear) { this.hidden = true; this.shadowRoot.innerHTML = h + this._resume(); return; }
+        if (!body || cfg.hide_when_clear) { this.hidden = true; this._box.innerHTML = h + this._resume(); return; }
         this.hidden = false;
-        this.shadowRoot.innerHTML = h + '<div class="strip clear' + compact + '">' + body + '</div>' + this._resume();
+        this._box.innerHTML = h + '<div class="strip clear' + compact + '">' + body + '</div>' + this._resume();
         return;
       }
       this.hidden = false;
@@ -264,7 +297,7 @@
       if (this._menu === 'snooze') { h += this._snoozeMenu(d); }
       if (this._menu === 'list') { h += this._listMenu(d); }
       h += this._resume();
-      this.shadowRoot.innerHTML = h;
+      this._box.innerHTML = h;
     }
 
     _since(a) {
@@ -330,7 +363,6 @@
       return src ? '<div class="camv"><img src="' + esc(src) + '" alt="">' + btn('cam', 'mdi:close', '', 'Close camera') + '</div>' : '';
     }
 
-    // ---------- events ----------
     _onClick(e) {
       var el = e.target.closest ? e.target.closest('[data-act]') : null;
       if (!el) { return; }
@@ -338,8 +370,8 @@
       if (act === 'tap') {
         if (this._heldFired) { this._heldFired = false; return; }
         this._perform('tap_action');
-      } else if (act === 'prev') { this._go(this._idx - 1); }
-      else if (act === 'next') { this._go(this._idx + 1); }
+      } else if (act === 'prev') { this._man(); this._go(this._idx - 1); }
+      else if (act === 'next') { this._man(); this._go(this._idx + 1); }
       else if (act === 'snooze') { this._menu = this._menu === 'snooze' ? '' : 'snooze'; this._render(); }
       else if (act === 'list') { this._menu = this._menu === 'list' ? '' : 'list'; this._render(); }
       else if (act === 'cam') { this._cam = false; this._render(); }
@@ -389,9 +421,12 @@
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
         this._swiped = true;
         setTimeout(function () { self._swiped = false; }, 400);
+        this._man();
         this._go(this._idx + (dx < 0 ? 1 : -1));
       }
     }
+
+    _man() { this._manual = Date.now() + this._cyc() * 2; }
 
     _perform(which) {
       if (this._swiped) { return; }

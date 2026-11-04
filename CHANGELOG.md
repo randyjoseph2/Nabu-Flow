@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Alerts Flow: synced and smoother
+- Every strip and bubble (all pages, tablets, phones, kitchen display) now cycles from one shared server-time clock, so they show the same alert at the same moment.
+- Fewer redraws: unchanged alert data and unchanged weather no longer rebuild the strip. The stylesheet is parsed once.
+- Smoother tile-to-tile transition: removed the backdrop blur on the strip and promoted the animated layers.
+- Tapping prev/next or swiping pauses the shared rhythm for two cycles, then snaps back in step.
+
 ## 1.1.0-beta (V1.1-Beta)
 
 First release with Alerts Flow and the merged top bar. The earlier V1.0-Beta release was cut from older code, so install V1.1-Beta instead.
