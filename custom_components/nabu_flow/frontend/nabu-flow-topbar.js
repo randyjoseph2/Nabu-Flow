@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 1.1.3-beta. The logo is the Assist button.
+   Version 1.1.4-beta. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -183,8 +183,7 @@
       var st = sc ? sc.scrollTop : (window.pageYOffset || 0);
       var r = this.getBoundingClientRect();
       if (st <= 2) { this._unpin(); return; }
-      var top = this._pinTop;
-      if (!this._pinned || top == null) { top = r.top + st; this._pinTop = top; }
+      var top = sc ? sc.getBoundingClientRect().top : 0;
       if (!this._pinned) {
         this.style.height = wrap.offsetHeight + 'px';
         this._pinned = true;
@@ -196,11 +195,12 @@
       }
       var ws = wrap.style;
       ws.position = 'fixed';
-      ws.top = Math.max(0, top) + 'px';
+      ws.top = top > 0 ? top + 'px' : 'env(safe-area-inset-top, 0px)';
       ws.left = r.left + 'px';
       ws.width = r.width + 'px';
       ws.zIndex = '7';
-      ws.background = this._cfg.sticky_bg || 'rgba(16,17,24,.92)';
+      ws.background = this._cfg.sticky_bg || 'rgba(16,17,24,.97)';
+      ws.webkitBackdropFilter = ws.backdropFilter = 'blur(14px)';
       ws.borderRadius = '0 0 18px 18px';
       ws.boxShadow = '0 6px 18px rgba(0,0,0,.35)';
     }
@@ -391,7 +391,7 @@
       var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
       window.addEventListener('error', onErr);
       var s = document.createElement('script');
-      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=1.1.3-beta&fb=1';
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=1.1.4-beta&fb=1';
       s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
       s.onload = function () {
         window.removeEventListener('error', onErr);

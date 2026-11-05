@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.4-beta (V1.1.4-Beta)
+
+- Pinned top bar now locks to the top edge of the scrolling page area instead of where it first sat, so it sits flush under the header on iPhone and the companion app. The pinned background is more solid with a light blur, so content no longer shows through.
+
 ## 1.1.3-beta (V1.1.3-Beta)
 
 - Christmas mode for the top bar. While `input_boolean.christmas_mode` is on, Nabu wears a Santa hat with twinkling sparkles, string lights run along the top, light snow falls, and a live countdown chip shows time to Christmas. On Dec 25 it says Merry Christmas, from Dec 26 it counts down to New Year, and it says Happy New Year until January 3, then the theme ends on its own. The bar keeps its dashboard's own colors.
