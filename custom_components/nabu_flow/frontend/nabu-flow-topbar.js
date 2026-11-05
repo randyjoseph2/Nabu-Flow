@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 1.1.2-beta. The logo is the Assist button.
+   Version 1.1.3-beta. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -53,9 +53,30 @@
     '.bdg{display:none;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;margin-left:2px;border-radius:10px;background:#ff5a4f;color:#fff;font-size:12px;font-weight:800;line-height:1}',
     '.bdg.show{display:inline-flex}',
     '.pill.on .bdg{background:var(--nb-ink);color:var(--nb-accent)}',
-    '.pill.on{background:var(--nb-accent);border-color:var(--nb-accent);color:var(--nb-ink);font-weight:700}'
+    '.pill.on{background:var(--nb-accent);border-color:var(--nb-accent);color:var(--nb-ink);font-weight:700}',
+    '.wrap.xm{position:relative;padding-top:13px}',
+    '.wrap.xm .top,.wrap.xm .alerts,.wrap.xm .pills{position:relative;z-index:1}',
+    '.snow{position:absolute;left:0;right:0;top:0;bottom:0;overflow:hidden;pointer-events:none;border-radius:inherit}',
+    '.fl{position:absolute;top:-8px;background:#fff;border-radius:50%;opacity:.6;animation:nb-fall linear infinite;will-change:transform}',
+    '@keyframes nb-fall{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(var(--dx),230px,0)}}',
+    '.lights{position:absolute;left:8px;right:8px;top:0;display:flex;justify-content:space-between;pointer-events:none;border-top:1px solid rgba(255,255,255,.16);border-radius:50%/6px;z-index:2}',
+    '.lb{width:6px;height:9px;margin-top:-1px;border-radius:50% 50% 50% 50%/35% 35% 65% 65%;animation:nb-tw 2.6s ease-in-out infinite}',
+    '.lb:nth-child(4n+1){background:#ff5a4f;box-shadow:0 0 7px #ff5a4f}',
+    '.lb:nth-child(4n+2){background:#4ade80;box-shadow:0 0 7px #4ade80;animation-delay:.6s}',
+    '.lb:nth-child(4n+3){background:#F7CB6B;box-shadow:0 0 7px #F7CB6B;animation-delay:1.2s}',
+    '.lb:nth-child(4n){background:#60a5fa;box-shadow:0 0 7px #60a5fa;animation-delay:1.8s}',
+    '@keyframes nb-tw{0%,100%{opacity:1}50%{opacity:.35}}',
+    '.tw{animation:nb-tw 1.8s ease-in-out infinite;transform-box:fill-box;transform-origin:center}',
+    '.tw2{animation-delay:.7s}.tw3{animation-delay:1.3s}',
+    '.xm-c{display:inline-flex;align-items:center;gap:6px;margin-top:5px;padding:3px 10px 3px 7px;border-radius:999px;border:1px solid var(--nb-accent);background:rgba(255,255,255,.05);color:var(--nb-accent);font-size:13px;font-weight:700;line-height:1.3;white-space:nowrap;max-width:100%}',
+    '.xm-c svg{width:14px;height:14px;flex:none}',
+    '.xm-c .xl{font-weight:500;opacity:.8}'
   ].join('');
 
+  // Santa hat and sparkles, drawn on top of the logo while Christmas mode is on.
+  var HAT = '<g transform="rotate(-8 60 24)"><path d="M26 30 C24 8 58 -6 88 6 C104 12 112 24 112 34 C98 22 84 22 70 22 C56 22 40 24 26 30 Z" fill="#E5484D"/><path d="M28 28 C28 14 48 4 70 4 C60 10 44 16 28 28 Z" fill="#F26C70" opacity=".6"/><rect x="18" y="22" width="84" height="15" rx="7.5" fill="#fff"/><circle cx="112" cy="34" r="8" fill="#fff"/></g>' +
+    '<path class="tw" d="M8 30 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#F7CB6B"/><path class="tw tw2" d="M112 62 l2 4 4 2 -4 2 -2 4 -2 -4 -4 -2 4 -2z" fill="#fff"/><path class="tw tw3" d="M10 102 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z" fill="#fff"/>';
+  var TREE = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 L12.5 7 H10.5 L14 12 H2 L5.5 7 H3.5 Z" fill="#4ade80"/><rect x="7" y="12" width="2" height="3" fill="#b8793e"/><circle cx="8" cy="1.6" r="1.4" fill="#F7CB6B"/></svg>';
   var LOGO = '<svg class="logo" viewBox="0 0 120 120" aria-hidden="true"><rect width="120" height="120" rx="26" fill="#F4E9D8"/><line x1="60" y1="24" x2="60" y2="14" stroke="#C99A3B" stroke-width="3"/><circle cx="60" cy="12" r="4" fill="#E9B44C"/><rect x="26" y="26" width="68" height="62" rx="18" fill="#1F3441"/><rect x="18" y="46" width="8" height="20" rx="4" fill="#1F3441"/><rect x="94" y="46" width="8" height="20" rx="4" fill="#1F3441"/><circle cx="46" cy="52" r="10" fill="#F4E9D8"/><circle cx="74" cy="52" r="10" fill="#F4E9D8"/><circle cx="46" cy="52" r="5" fill="#E9B44C"/><circle cx="74" cy="52" r="5" fill="#E9B44C"/><path d="M48 70 Q60 80 72 70" stroke="#F4E9D8" stroke-width="4" fill="none" stroke-linecap="round"/></svg>';
 
   function esc(v) {
@@ -110,6 +131,7 @@
       if (this._strip) { this._strip.hass = h; }
       this._refreshActive();
       this._refreshBadges();
+      if (this.shadowRoot.firstChild) { this._xmCheck(); }
     }
 
     connectedCallback() {
@@ -127,6 +149,7 @@
       window.addEventListener('scroll', this._onScroll, true);
       window.addEventListener('resize', this._onScroll);
       this._refreshActive();
+      if (!this._xmTimer && this._cfg.christmas !== false && this.shadowRoot.firstChild) { this._render(); }
     }
 
     disconnectedCallback() {
@@ -137,6 +160,7 @@
       window.removeEventListener('scroll', this._onScroll, true);
       window.removeEventListener('resize', this._onScroll);
       this._unpin();
+      if (this._xmTimer) { clearInterval(this._xmTimer); this._xmTimer = null; }
     }
 
     // Keep the bar on screen while the page scrolls (sticky: false turns this off).
@@ -191,6 +215,56 @@
       if (wrap) { wrap.removeAttribute('style'); }
     }
 
+    // ---------- Christmas mode ----------
+    // Themed while input_boolean.christmas_mode is on (christmas: false disables, christmas.entity overrides).
+    // Counts down to Christmas, then to New Year, and ends itself a few days into January.
+    _xmCfg() { var c = this._cfg.christmas; return c === false ? null : (c && typeof c === 'object' ? c : {}); }
+
+    _xmState() {
+      var c = this._xmCfg();
+      if (!c) { return null; }
+      var ent = c.entity || 'input_boolean.christmas_mode';
+      var st = this._hass && this._hass.states ? this._hass.states[ent] : null;
+      if (!c.preview && !(st && st.state === 'on')) { return null; }
+      var n = new Date(), y = n.getFullYear(), m = n.getMonth(), d = n.getDate();
+      var end = c.end_days != null ? c.end_days : 3;
+      if (m === 0) { return d <= end ? { msg: 'Happy New Year!' } : null; }
+      if (m === 11 && d === 25) { return { msg: 'Merry Christmas!' }; }
+      if (m === 11 && d > 25) { return { to: new Date(y + 1, 0, 1).getTime(), label: 'to New Year' }; }
+      return { to: new Date(y, 11, 25).getTime(), label: 'to Christmas' };
+    }
+
+    _xmText(x) {
+      if (x.msg) { return x.msg; }
+      var t = Math.max(0, Math.floor((x.to - Date.now()) / 1000));
+      var dd = Math.floor(t / 86400), hh = Math.floor(t % 86400 / 3600), mm = Math.floor(t % 3600 / 60), ss = t % 60;
+      function z(v) { return (v < 10 ? '0' : '') + v; }
+      return (dd > 0 ? dd + 'd ' : '') + z(hh) + ':' + z(mm) + ':' + z(ss);
+    }
+
+    _xmCheck() {
+      var x = this._xmState();
+      var key = x ? (x.msg || x.label) : '';
+      if (key !== this._xmKey) { this._render(); return; }
+      var el = x && !x.msg ? this.shadowRoot.querySelector('.xt') : null;
+      if (el) { el.textContent = this._xmText(x); }
+    }
+
+    _xmHtml() {
+      var h = '<div class="lights">';
+      for (var i = 0; i < 16; i++) { h += '<span class="lb"></span>'; }
+      h += '</div>';
+      if (this._xmCfg().snow !== false) {
+        h += '<div class="snow">';
+        for (var k = 0; k < 14; k++) {
+          var r = (k * 37 % 100), sz = 2 + (k % 3);
+          h += '<span class="fl" style="left:' + r + '%;width:' + sz + 'px;height:' + sz + 'px;--dx:' + ((k % 2 ? 1 : -1) * (10 + k * 2)) + 'px;animation-duration:' + (7 + (k * 5 % 6)) + 's;animation-delay:-' + (k * 3 % 9) + 's"></span>';
+        }
+        h += '</div>';
+      }
+      return h;
+    }
+
     _findActive() {
       var here = norm(window.location.pathname);
       var pages = this._cfg.pages || [];
@@ -234,14 +308,21 @@
 
     _render() {
       var cfg = this._cfg;
-      var h = '<style>' + CSS + '</style><div class="wrap"><div class="top">';
+      var xm = this._xmState();
+      this._xmKey = xm ? (xm.msg || xm.label) : '';
+      if (this._xmTimer) { clearInterval(this._xmTimer); this._xmTimer = null; }
+      var self = this;
+      if (this._xmCfg() && this._cfg.christmas !== false) { this._xmTimer = setInterval(function () { self._xmCheck(); }, 1000); }
+      var h = '<style>' + CSS + '</style><div class="wrap' + (xm ? ' xm' : '') + '">' + (xm ? this._xmHtml() : '') + '<div class="top">';
       if (cfg.menu !== false) {
         h += '<button class="ib" data-act="menu" aria-label="Menu"><ha-icon icon="mdi:menu"></ha-icon></button>';
       }
+      var logo = xm ? LOGO.replace('class="logo"', 'class="logo" style="overflow:visible"').replace('</svg>', HAT + '</svg>') : LOGO;
       // The Nabu logo is the Assist button (set assist: false to make it a plain logo).
-      h += cfg.assist !== false ? '<button class="logob" data-act="assist" aria-label="Talk to Nabu">' + LOGO + '</button>' : LOGO;
+      h += cfg.assist !== false ? '<button class="logob" data-act="assist" aria-label="Talk to Nabu">' + logo + '</button>' : logo;
       h += '<div class="txt"><div class="ttl">' + esc(cfg.title || 'Nabu') + '</div>';
       if (cfg.subtitle) { h += '<div class="sub">' + esc(cfg.subtitle) + '</div>'; }
+      if (xm) { h += '<div class="xm-c">' + TREE + '<span class="xt">' + esc(this._xmText(xm)) + '</span>' + (xm.label ? '<span class="xl">' + xm.label + '</span>' : '') + '</div>'; }
       h += '</div>';
       if (cfg.alerts) { h += '<div class="bub"></div>'; }
       h += '</div>';
@@ -310,7 +391,7 @@
       var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
       window.addEventListener('error', onErr);
       var s = document.createElement('script');
-      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=1.1.2-beta&fb=1';
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=1.1.3-beta&fb=1';
       s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
       s.onload = function () {
         window.removeEventListener('error', onErr);
