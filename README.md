@@ -177,6 +177,8 @@ pages:
     path: /newui-4-0/cameras
 ```
 
+The bar stays pinned to the top while the page scrolls. Set `sticky: false` to turn that off, or `sticky_bg: 'rgba(0,0,0,.9)'` to change the pinned background.
+
 A page can show a count bubble from any numeric entity with `badge`, for example `badge: sensor.chore_quest_open`. It hides when the value is 0.
 
 ## Alerts Flow

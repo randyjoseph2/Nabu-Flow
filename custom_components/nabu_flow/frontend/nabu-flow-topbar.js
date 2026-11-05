@@ -1,7 +1,7 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 1.1.1-beta. The logo is the Assist button.
+   Version 1.1.2-beta. The logo is the Assist button.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
@@ -82,6 +82,13 @@
       this._active = '';
       this._onLoc = this._refreshActive.bind(this);
       this._strip = null;
+      this._raf = 0;
+      this._pinned = false;
+      this._onScroll = function () {
+        if (this._raf) { return; }
+        var self = this;
+        this._raf = window.requestAnimationFrame(function () { self._raf = 0; self._pin(); });
+      }.bind(this);
       this.shadowRoot.addEventListener('click', this._onClick.bind(this));
     }
 
@@ -117,6 +124,8 @@
       }
       window.addEventListener('location-changed', this._onLoc);
       window.addEventListener('popstate', this._onLoc);
+      window.addEventListener('scroll', this._onScroll, true);
+      window.addEventListener('resize', this._onScroll);
       this._refreshActive();
     }
 
@@ -125,6 +134,61 @@
       if (this._diagTimer) { clearInterval(this._diagTimer); this._diagTimer = null; }
       window.removeEventListener('location-changed', this._onLoc);
       window.removeEventListener('popstate', this._onLoc);
+      window.removeEventListener('scroll', this._onScroll, true);
+      window.removeEventListener('resize', this._onScroll);
+      this._unpin();
+    }
+
+    // Keep the bar on screen while the page scrolls (sticky: false turns this off).
+    _scroller() {
+      var n = this;
+      for (var i = 0; i < 40 && n; i++) {
+        n = n.parentElement || (n.getRootNode && n.getRootNode().host) || null;
+        if (n && n.nodeType === 1) {
+          var oy = window.getComputedStyle(n).overflowY;
+          if ((oy === 'auto' || oy === 'scroll') && n.scrollHeight > n.clientHeight + 1) { return n; }
+        }
+      }
+      return null;
+    }
+
+    _pin() {
+      var wrap = this.shadowRoot && this.shadowRoot.querySelector('.wrap');
+      if (!wrap || this._cfg.sticky === false) { return; }
+      var sc = this._scroller();
+      var st = sc ? sc.scrollTop : (window.pageYOffset || 0);
+      var r = this.getBoundingClientRect();
+      if (st <= 2) { this._unpin(); return; }
+      var top = this._pinTop;
+      if (!this._pinned || top == null) { top = r.top + st; this._pinTop = top; }
+      if (!this._pinned) {
+        this.style.height = wrap.offsetHeight + 'px';
+        this._pinned = true;
+        if (window.ResizeObserver) {
+          var self = this;
+          this._wro = new window.ResizeObserver(function () { self.style.height = wrap.offsetHeight + 'px'; });
+          this._wro.observe(wrap);
+        }
+      }
+      var ws = wrap.style;
+      ws.position = 'fixed';
+      ws.top = Math.max(0, top) + 'px';
+      ws.left = r.left + 'px';
+      ws.width = r.width + 'px';
+      ws.zIndex = '7';
+      ws.background = this._cfg.sticky_bg || 'rgba(16,17,24,.92)';
+      ws.borderRadius = '0 0 18px 18px';
+      ws.boxShadow = '0 6px 18px rgba(0,0,0,.35)';
+    }
+
+    _unpin() {
+      if (this._wro) { this._wro.disconnect(); this._wro = null; }
+      if (!this._pinned) { return; }
+      this._pinned = false;
+      this._pinTop = null;
+      this.style.height = '';
+      var wrap = this.shadowRoot && this.shadowRoot.querySelector('.wrap');
+      if (wrap) { wrap.removeAttribute('style'); }
     }
 
     _findActive() {
@@ -198,6 +262,7 @@
       this._mountStrip();
       this._centerActive();
       this._refreshBadges();
+      if (this._pinned) { if (this._wro) { this._wro.disconnect(); this._wro = null; } this._pinned = false; this._pin(); }
     }
 
     _refreshBadges() {
@@ -245,7 +310,7 @@
       var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
       window.addEventListener('error', onErr);
       var s = document.createElement('script');
-      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=1.1.1-beta&fb=1';
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=1.1.2-beta&fb=1';
       s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
       s.onload = function () {
         window.removeEventListener('error', onErr);

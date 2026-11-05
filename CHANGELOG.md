@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2-beta (V1.1.2-Beta)
+
+- Top bar stays pinned at the top while the page scrolls, so the alert bubble and the page pills are always reachable. Turn it off with `sticky: false`; `sticky_bg` sets the pinned background color.
+
 ## 1.1.1-beta (V1.1.1-Beta)
 
 ### Alerts Flow: synced and smoother
