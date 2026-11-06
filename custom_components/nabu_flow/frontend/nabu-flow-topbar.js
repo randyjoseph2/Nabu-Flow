@@ -1,13 +1,13 @@
 /* Nabu top bar: a header card with a logo, title, Assist button and pill tabs
    that act as the pages of a dashboard. Plain JS on purpose: no template
    literals, no emoji, bare customElements.define (iOS companion WebView rules).
-   Version 1.1.4-beta. The logo is the Assist button.
+   Version 2.4.0-alpha.
    Card config:
      type: custom:nabu-top-bar
      title: NewUI 4.0
      subtitle: Home Assistant        (optional)
-     assist: true                    (optional, default true; the logo opens Assist)
-     menu: true                      (optional, default true; false hides the sidebar button)
+     assist: false                   (optional; logo is not the Assist button)
+     menu: false                     (optional; hides the sidebar button)
      alerts: true                    (optional; shows the Alerts Flow strip under the title)
      alerts:                         (or an object)
        layout: strip | bubble | auto   strip = full width under the title (default),
@@ -15,6 +15,7 @@
                                        auto = bubble when the bar is 700px or wider
        hide_when_clear, controls, only, skip
      alerts_compact: true            (optional; smaller strip)
+     sticky: false | sticky_hide: false | sticky_compact: false   (pinned bar options)
      pages:
        - label: Home
          path: /newui-4-0/home-2-0
@@ -70,7 +71,15 @@
     '.tw2{animation-delay:.7s}.tw3{animation-delay:1.3s}',
     '.xm-c{display:inline-flex;align-items:center;gap:6px;margin-top:5px;padding:3px 10px 3px 7px;border-radius:999px;border:1px solid var(--nb-accent);background:rgba(255,255,255,.05);color:var(--nb-accent);font-size:13px;font-weight:700;line-height:1.3;white-space:nowrap;max-width:100%}',
     '.xm-c svg{width:14px;height:14px;flex:none}',
-    '.xm-c .xl{font-weight:500;opacity:.8}'
+    '.xm-c .xl{font-weight:500;opacity:.8}',
+    '.wrap.cp .sub,.wrap.cp .xm-c{display:none}',
+    '.wrap.cp .top{gap:8px}',
+    '.wrap.cp .logo{width:36px;height:36px}',
+    '.wrap.cp .ib{width:38px;height:38px}',
+    '.wrap.cp .ttl{font-size:20px}',
+    '.wrap.cp nabu-alert-strip{margin-top:8px}',
+    '.wrap.cp .pills{margin-top:8px;padding-bottom:4px}',
+    '.wrap.cp .pill{padding:8px 16px;font-size:15px}'
   ].join('');
 
   // Santa hat and sparkles, drawn on top of the logo while Christmas mode is on.
@@ -101,7 +110,8 @@
       this.attachShadow({ mode: 'open' });
       this._cfg = { pages: [] };
       this._active = '';
-      this._onLoc = this._refreshActive.bind(this);
+      var me0 = this;
+      this._onLoc = function () { me0._refreshActive(); me0._onScroll(); };
       this._strip = null;
       this._raf = 0;
       this._pinned = false;
@@ -148,6 +158,7 @@
       window.addEventListener('popstate', this._onLoc);
       window.addEventListener('scroll', this._onScroll, true);
       window.addEventListener('resize', this._onScroll);
+      window.addEventListener('hashchange', this._onScroll);
       this._refreshActive();
       if (!this._xmTimer && this._cfg.christmas !== false && this.shadowRoot.firstChild) { this._render(); }
     }
@@ -159,11 +170,12 @@
       window.removeEventListener('popstate', this._onLoc);
       window.removeEventListener('scroll', this._onScroll, true);
       window.removeEventListener('resize', this._onScroll);
+      window.removeEventListener('hashchange', this._onScroll);
       this._unpin();
       if (this._xmTimer) { clearInterval(this._xmTimer); this._xmTimer = null; }
     }
 
-    // Keep the bar on screen while the page scrolls (sticky: false turns this off).
+    // Pin while scrolling: compact, hides on scroll down, and hides while a popup (#hash) is open.
     _scroller() {
       var n = this;
       for (var i = 0; i < 40 && n; i++) {
@@ -176,26 +188,46 @@
       return null;
     }
 
+    _inset() {
+      var pr = this._probe;
+      if (!pr) {
+        pr = this._probe = document.createElement('div');
+        pr.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top,0px)';
+        this.shadowRoot.appendChild(pr);
+      }
+      return parseFloat(window.getComputedStyle(pr).paddingTop) || 0;
+    }
+
     _pin() {
       var wrap = this.shadowRoot && this.shadowRoot.querySelector('.wrap');
       if (!wrap || this._cfg.sticky === false) { return; }
       var sc = this._scroller();
       var st = sc ? sc.scrollTop : (window.pageYOffset || 0);
-      var r = this.getBoundingClientRect();
       if (st <= 2) { this._unpin(); return; }
+      var r = this.getBoundingClientRect();
+      var inset = this._inset();
       var top = sc ? sc.getBoundingClientRect().top : 0;
+      // No header above the page (iPhone status bar): sit at 0 and pad down so nothing shows above the bar.
+      var under = top <= inset + 1;
       if (!this._pinned) {
         this.style.height = wrap.offsetHeight + 'px';
         this._pinned = true;
-        if (window.ResizeObserver) {
-          var self = this;
-          this._wro = new window.ResizeObserver(function () { self.style.height = wrap.offsetHeight + 'px'; });
-          this._wro.observe(wrap);
-        }
+        this._padBase = parseFloat(window.getComputedStyle(wrap).paddingTop) || 6;
+        this._lastSt = st;
+        this._hid = false;
       }
+      var cp = this._cfg.sticky_compact !== false;
+      if (cp) { wrap.classList.add('cp'); }
+      if (this._cfg.sticky_hide !== false) {
+        var d = st - this._lastSt;
+        if (d > 8 && st > 120) { this._hid = true; } else if (d < -8) { this._hid = false; }
+      }
+      this._lastSt = st;
+      var pop = window.location.hash.length > 1;
       var ws = wrap.style;
       ws.position = 'fixed';
-      ws.top = top > 0 ? top + 'px' : 'env(safe-area-inset-top, 0px)';
+      ws.top = under ? '0' : top + 'px';
+      ws.paddingTop = (under ? inset + this._padBase : this._padBase) + 'px';
       ws.left = r.left + 'px';
       ws.width = r.width + 'px';
       ws.zIndex = '7';
@@ -203,21 +235,22 @@
       ws.webkitBackdropFilter = ws.backdropFilter = 'blur(14px)';
       ws.borderRadius = '0 0 18px 18px';
       ws.boxShadow = '0 6px 18px rgba(0,0,0,.35)';
+      ws.transition = 'transform .22s ease,opacity .18s ease';
+      var hide = this._hid || pop;
+      ws.transform = hide ? 'translate3d(0,' + -(top + wrap.offsetHeight + 30) + 'px,0)' : 'none';
+      ws.opacity = pop ? '0' : '1';
+      ws.pointerEvents = hide ? 'none' : '';
     }
 
     _unpin() {
-      if (this._wro) { this._wro.disconnect(); this._wro = null; }
       if (!this._pinned) { return; }
       this._pinned = false;
-      this._pinTop = null;
       this.style.height = '';
       var wrap = this.shadowRoot && this.shadowRoot.querySelector('.wrap');
-      if (wrap) { wrap.removeAttribute('style'); }
+      if (wrap) { wrap.removeAttribute('style'); wrap.classList.remove('cp'); }
     }
 
-    // ---------- Christmas mode ----------
-    // Themed while input_boolean.christmas_mode is on (christmas: false disables, christmas.entity overrides).
-    // Counts down to Christmas, then to New Year, and ends itself a few days into January.
+    // ---------- Christmas mode (input_boolean.christmas_mode; christmas: false disables) ----------
     _xmCfg() { var c = this._cfg.christmas; return c === false ? null : (c && typeof c === 'object' ? c : {}); }
 
     _xmState() {
@@ -343,7 +376,7 @@
       this._mountStrip();
       this._centerActive();
       this._refreshBadges();
-      if (this._pinned) { if (this._wro) { this._wro.disconnect(); this._wro = null; } this._pinned = false; this._pin(); }
+      if (this._pinned) { this._pinned = false; this._pin(); }
     }
 
     _refreshBadges() {
@@ -391,7 +424,7 @@
       var onErr = function (e) { self._loadErr = String((e && (e.message || e.type)) || 'error').slice(0, 90); };
       window.addEventListener('error', onErr);
       var s = document.createElement('script');
-      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=1.1.4-beta&fb=1';
+      s.src = '/nabu_flow_static/nabu-flow-alerts.js?v=2.4.0-alpha&fb=1';
       s.onerror = function () { self._loadErr = self._loadErr || 'file would not download'; };
       s.onload = function () {
         window.removeEventListener('error', onErr);

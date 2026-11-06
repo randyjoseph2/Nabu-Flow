@@ -179,7 +179,7 @@ pages:
 
 **Christmas mode.** Turn on `input_boolean.christmas_mode` and Nabu gets a Santa hat, string lights, light snow and a live countdown (to Christmas, then to New Year). The theme ends itself on January 3. Options: `christmas: false`, or `christmas: {entity: input_boolean.other, snow: false, end_days: 3}`. Add `preview: true` to see it without the switch.
 
-The bar stays pinned to the top while the page scrolls. Set `sticky: false` to turn that off, or `sticky_bg: 'rgba(0,0,0,.9)'` to change the pinned background.
+The bar stays pinned to the top while the page scrolls. While pinned it shrinks to a slim bar, slides away on scroll down, comes back on scroll up and hides while a popup is open (`sticky_compact: false` and `sticky_hide: false` turn those off). Set `sticky: false` to turn pinning off, or `sticky_bg: 'rgba(0,0,0,.9)'` to change the pinned background.
 
 A page can show a count bubble from any numeric entity with `badge`, for example `badge: sensor.chore_quest_open`. It hides when the value is 0.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.4.0-alpha (v2.4-Alpha)
+
+- Pinned top bar is now compact: while pinned it drops the subtitle and countdown chip and shrinks the logo, title and pills. It slides away as you scroll down and returns when you scroll up, and it hides while a popup (a `#` in the URL) is open so it no longer draws over popups.
+- iPhone: when there is no header above the page, the pinned bar sits at the very top and pads under the status bar, so scrolled content no longer shows above it.
+- Options: `sticky_compact: false` and `sticky_hide: false` turn the new behavior off; `sticky: false` still turns pinning off.
+- Version scheme moves to 2.x alpha (previous tag v2.2-Alpha / v2.3-Alpha contain 1.1.4-beta code).
+
 ## 1.1.4-beta (V1.1.4-Beta)
 
 - Pinned top bar now locks to the top edge of the scrolling page area instead of where it first sat, so it sits flush under the header on iPhone and the companion app. The pinned background is more solid with a light blur, so content no longer shows through.

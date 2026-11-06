@@ -1,8 +1,8 @@
 /* Nabu Flow panel. Plain JS on purpose: no template literals, no emoji, bare
-   customElements.define (iOS companion WebView rules). Version 1.1.4-beta.
+   customElements.define (iOS companion WebView rules). Version 2.4.0-alpha.
    Bump the ?v= below together with VERSION in const.py to bust caches. */
-import './nabu-flow-kit.js?v=1.1.4-beta';
-import './nabu-flow-alerts-tab.js?v=1.1.4-beta';
+import './nabu-flow-kit.js?v=2.4.0-alpha';
+import './nabu-flow-alerts-tab.js?v=2.4.0-alpha';
 
 (function () {
   'use strict';
